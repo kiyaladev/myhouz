@@ -20,6 +20,7 @@ export class UserController {
     }
   }
 
+  
   // Récupérer un utilisateur par ID
   static async getUserById(req: Request, res: Response): Promise<void> {
     try {
