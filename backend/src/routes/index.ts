@@ -4,6 +4,10 @@ import projectRoutes from './projectRoutes';
 import productRoutes from './productRoutes';
 import ideabookRoutes from './ideabookRoutes';
 import reviewRoutes from './reviewRoutes';
+import articleRoutes from './articleRoutes';
+import forumRoutes from './forumRoutes';
+import messageRoutes from './messageRoutes';
+import orderRoutes from './orderRoutes';
 
 const router = Router();
 
@@ -13,6 +17,10 @@ router.use('/projects', projectRoutes);
 router.use('/products', productRoutes);
 router.use('/ideabooks', ideabookRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/articles', articleRoutes);
+router.use('/forum', forumRoutes);
+router.use('/messages', messageRoutes);
+router.use('/orders', orderRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {
@@ -34,7 +42,11 @@ router.get('/health', (req, res) => {
       'Galerie de projets d\'inspiration',
       'Marketplace de produits',
       'Carnets d\'idées (Ideabooks)',
-      'Système d\'avis et de notation'
+      'Système d\'avis et de notation',
+      'Articles de blog et conseils',
+      'Forum communautaire',
+      'Messagerie entre utilisateurs',
+      'Système de commandes e-commerce'
     ]
   });
 });
