@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import Layout from '../../components/layout/Layout';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Badge } from '../../components/ui/badge';
 
 interface Project {
   id: string;
@@ -24,9 +28,9 @@ interface Project {
 
 export default function ProjectsPage() {
   const [filters, setFilters] = useState({
-    category: '',
-    room: '',
-    style: '',
+    category: 'all',
+    room: 'all',
+    style: 'all',
     search: ''
   });
 
@@ -83,14 +87,14 @@ export default function ProjectsPage() {
   ];
 
   const categories = [
-    { value: '', label: 'Toutes les catégories' },
+    { value: 'all', label: 'Toutes les catégories' },
     { value: 'renovation', label: 'Rénovation' },
     { value: 'decoration', label: 'Décoration' },
     { value: 'architecture', label: 'Architecture' }
   ];
 
   const rooms = [
-    { value: '', label: 'Toutes les pièces' },
+    { value: 'all', label: 'Toutes les pièces' },
     { value: 'cuisine', label: 'Cuisine' },
     { value: 'salon', label: 'Salon' },
     { value: 'chambre', label: 'Chambre' },
@@ -99,7 +103,7 @@ export default function ProjectsPage() {
   ];
 
   const styles = [
-    { value: '', label: 'Tous les styles' },
+    { value: 'all', label: 'Tous les styles' },
     { value: 'moderne', label: 'Moderne' },
     { value: 'contemporain', label: 'Contemporain' },
     { value: 'scandinave', label: 'Scandinave' },
@@ -132,62 +136,57 @@ export default function ProjectsPage() {
           {/* Filtres */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Recherche
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="search">Recherche</Label>
+                <Input
+                  id="search"
                   type="text"
                   placeholder="Rechercher un projet..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Catégorie
-                </label>
-                <select
-                  value={filters.category}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  {categories.map(cat => (
-                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                  ))}
-                </select>
+              <div className="space-y-2">
+                <Label>Catégorie</Label>
+                <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une catégorie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pièce
-                </label>
-                <select
-                  value={filters.room}
-                  onChange={(e) => handleFilterChange('room', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  {rooms.map(room => (
-                    <option key={room.value} value={room.value}>{room.label}</option>
-                  ))}
-                </select>
+              <div className="space-y-2">
+                <Label>Pièce</Label>
+                <Select value={filters.room} onValueChange={(value) => handleFilterChange('room', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une pièce" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rooms.map(room => (
+                      <SelectItem key={room.value} value={room.value}>{room.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Style
-                </label>
-                <select
-                  value={filters.style}
-                  onChange={(e) => handleFilterChange('style', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                >
-                  {styles.map(style => (
-                    <option key={style.value} value={style.value}>{style.label}</option>
-                  ))}
-                </select>
+              <div className="space-y-2">
+                <Label>Style</Label>
+                <Select value={filters.style} onValueChange={(value) => handleFilterChange('style', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {styles.map(style => (
+                      <SelectItem key={style.value} value={style.value}>{style.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -265,12 +264,9 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {project.style.slice(0, 2).map((style) => (
-                        <span
-                          key={style}
-                          className="px-2 py-1 bg-emerald-100 text-emerald-600 text-xs rounded-full"
-                        >
+                        <Badge key={style} variant="secondary" className="text-xs">
                           {style}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
                   </div>
