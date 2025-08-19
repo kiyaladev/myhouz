@@ -1,7 +1,7 @@
 import React from 'react';
 import Layout from '../components/layout/Layout';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -97,7 +97,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredCategories.map((category) => (
               <Link key={category.name} href={category.href}>
-                <Card hover className="h-64 relative overflow-hidden group cursor-pointer">
+                <Card className="h-64 relative overflow-hidden group cursor-pointer hover:shadow-md transition-shadow duration-200">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
                   <div 
                     className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"

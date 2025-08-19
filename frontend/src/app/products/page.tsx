@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Layout from '../../components/layout/Layout';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 
 interface Product {
   id: string;
@@ -197,7 +197,7 @@ export default function ProductsPage() {
           {/* Grille de produits */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
-              <Card key={product.id} hover className="overflow-hidden">
+              <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                 <div className="relative">
                   <img
                     src={product.images[0]}
