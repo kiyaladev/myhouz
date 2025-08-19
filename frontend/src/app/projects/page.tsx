@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Layout from '../../components/layout/Layout';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 
 interface Project {
   id: string;
@@ -207,7 +207,7 @@ export default function ProjectsPage() {
           {/* Grille de projets */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
-              <Card key={project.id} hover className="overflow-hidden">
+              <Card key={project.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                 <div className="relative">
                   <img
                     src={project.images[0]}
