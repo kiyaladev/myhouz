@@ -1,13 +1,17 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/UserController';
+import { authenticateToken, requireProfessional } from '../middleware/auth';
 
 const router = Router();
 
-// Routes pour les utilisateurs
-router.get('/', UserController.getAllUsers);
-router.get('/:id', UserController.getUserById);
-router.post('/', UserController.createUser);
-router.put('/:id', UserController.updateUser);
-router.delete('/:id', UserController.deleteUser);
+// Routes publiques
+router.post('/register', UserController.register);
+router.post('/login', UserController.login);
+router.get('/professionals/search', UserController.searchProfessionals);
+router.get('/professionals/:id', UserController.getProfessionalProfile);
+
+// Routes protégées
+router.get('/profile', authenticateToken, UserController.getProfile);
+router.put('/profile', authenticateToken, UserController.updateProfile);
 
 export default router;

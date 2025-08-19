@@ -1,16 +1,41 @@
 import { Router } from 'express';
 import userRoutes from './userRoutes';
+import projectRoutes from './projectRoutes';
+import productRoutes from './productRoutes';
+import ideabookRoutes from './ideabookRoutes';
+import reviewRoutes from './reviewRoutes';
 
 const router = Router();
 
 // Routes API
 router.use('/users', userRoutes);
+router.use('/projects', projectRoutes);
+router.use('/products', productRoutes);
+router.use('/ideabooks', ideabookRoutes);
+router.use('/reviews', reviewRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {
   res.json({
-    message: 'API fonctionnelle',
-    timestamp: new Date().toISOString()
+    message: 'API MyHouz fonctionnelle',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+// Route de santé de l'API
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API MyHouz fonctionne correctement',
+    timestamp: new Date().toISOString(),
+    features: [
+      'Gestion des utilisateurs (particuliers/professionnels)',
+      'Galerie de projets d\'inspiration',
+      'Marketplace de produits',
+      'Carnets d\'idées (Ideabooks)',
+      'Système d\'avis et de notation'
+    ]
   });
 });
 

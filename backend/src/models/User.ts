@@ -1,61 +1,126 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IUser extends Document {
-  nom: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  motDePasse: string;
-  telephone?: string;
-  role: 'client' | 'agent' | 'admin';
-  dateCreation: Date;
-  dateModification: Date;
+  password: string;
+  userType: 'particulier' | 'professionnel';
+  profileImage?: string;
+  phone?: string;
+  location?: {
+    address: string;
+    city: string;
+    zipCode: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
+  professionalInfo?: {
+    companyName: string;
+    businessNumber: string;
+    services: string[];
+    description: string;
+    portfolio: string[];
+    certifications: string[];
+    workingZones: string[];
+    pricing: {
+      startingPrice?: number;
+      currency: string;
+    };
+    subscription: {
+      type: 'gratuit' | 'premium';
+      expiresAt?: Date;
+    };
+    rating: {
+      average: number;
+      totalReviews: number;
+    };
+    verified: boolean;
+  };
+  socialAuth?: {
+    googleId?: string;
+    facebookId?: string;
+  };
+  preferences?: {
+    newsletter: boolean;
+    notifications: boolean;
+    language: string;
+  };
+  isActive: boolean;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const UserSchema: Schema = new Schema({
-  nom: {
-    type: String,
-    required: [true, 'Le nom est requis'],
-    trim: true,
-    maxlength: [100, 'Le nom ne peut pas dépasser 100 caractères']
+  firstName: { type: String, required: true, trim: true },
+  lastName: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  password: { type: String, required: true },
+  userType: { 
+    type: String, 
+    enum: ['particulier', 'professionnel'], 
+    required: true 
   },
-  email: {
-    type: String,
-    required: [true, 'L\'email est requis'],
-    unique: true,
-    lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Veuillez entrer un email valide']
+  profileImage: { type: String },
+  phone: { type: String },
+  location: {
+    address: String,
+    city: String,
+    zipCode: String,
+    coordinates: {
+      lat: Number,
+      lng: Number
+    }
   },
-  motDePasse: {
-    type: String,
-    required: [true, 'Le mot de passe est requis'],
-    minlength: [6, 'Le mot de passe doit contenir au moins 6 caractères']
+  professionalInfo: {
+    companyName: String,
+    businessNumber: String,
+    services: [String],
+    description: String,
+    portfolio: [String],
+    certifications: [String],
+    workingZones: [String],
+    pricing: {
+      startingPrice: Number,
+      currency: { type: String, default: 'EUR' }
+    },
+    subscription: {
+      type: { type: String, enum: ['gratuit', 'premium'], default: 'gratuit' },
+      expiresAt: Date
+    },
+    rating: {
+      average: { type: Number, default: 0 },
+      totalReviews: { type: Number, default: 0 }
+    },
+    verified: { type: Boolean, default: false }
   },
-  telephone: {
-    type: String,
-    trim: true
+  socialAuth: {
+    googleId: String,
+    facebookId: String
   },
-  role: {
-    type: String,
-    enum: ['client', 'agent', 'admin'],
-    default: 'client'
+  preferences: {
+    newsletter: { type: Boolean, default: true },
+    notifications: { type: Boolean, default: true },
+    language: { type: String, default: 'fr' }
   },
-  dateCreation: {
-    type: Date,
-    default: Date.now
-  },
-  dateModification: {
-    type: Date,
-    default: Date.now
-  }
-}, {
-  timestamps: true
+  isActive: { type: Boolean, default: true },
+  emailVerified: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
-// Index pour optimiser les recherches
-UserSchema.index({ email: 1 });
+// Index pour la recherche géographique
+UserSchema.index({ 'location.coordinates': '2dsphere' });
 
-// Middleware pour mettre à jour dateModification
+// Index pour la recherche de professionnels
+UserSchema.index({ userType: 1, 'professionalInfo.services': 1 });
+
+// Middleware pour mettre à jour updatedAt
 UserSchema.pre('save', function(next) {
-  this.dateModification = new Date();
+  this.updatedAt = new Date();
   next();
 });
 

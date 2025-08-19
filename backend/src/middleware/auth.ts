@@ -1,65 +1,96 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { User } from '../models';
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
+interface JwtPayload {
+  userId: string;
+  userType: 'particulier' | 'professionnel';
 }
 
-export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
-  if (!token) {
-    res.status(401).json({
-      success: false,
-      message: 'Token d\'accès requis'
-    });
-    return;
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload;
+    }
   }
+}
 
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    res.status(500).json({
-      success: false,
-      message: 'Configuration du serveur incorrecte'
-    });
-    return;
-  }
-
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const decoded = jwt.verify(token, jwtSecret) as any;
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      res.status(401).json({
+        success: false,
+        message: 'Token d\'accès requis'
+      });
+      return;
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    
+    // Vérifier que l'utilisateur existe toujours
+    const user = await User.findById(decoded.userId);
+    if (!user || !user.isActive) {
+      res.status(401).json({
+        success: false,
+        message: 'Token invalide ou utilisateur inactif'
+      });
+      return;
+    }
+
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(403).json({
+    console.error('Erreur d\'authentification:', error);
+    res.status(401).json({
       success: false,
       message: 'Token invalide'
     });
   }
 };
 
-export const authorizeRoles = (...roles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      res.status(401).json({
-        success: false,
-        message: 'Utilisateur non authentifié'
-      });
-      return;
-    }
+export const requireProfessional = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user || req.user.userType !== 'professionnel') {
+    res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux professionnels'
+    });
+    return;
+  }
+  next();
+};
 
-    if (!roles.includes(req.user.role)) {
-      res.status(403).json({
-        success: false,
-        message: 'Accès non autorisé pour ce rôle'
-      });
-      return;
-    }
+export const requireParticulier = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user || req.user.userType !== 'particulier') {
+    res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux particuliers'
+    });
+    return;
+  }
+  next();
+};
 
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      
+      // Vérifier que l'utilisateur existe toujours
+      const user = await User.findById(decoded.userId);
+      if (user && user.isActive) {
+        req.user = decoded;
+      }
+    }
+    
     next();
-  };
+  } catch (error) {
+    // En cas d'erreur avec le token, on continue sans utilisateur authentifié
+    next();
+  }
 };

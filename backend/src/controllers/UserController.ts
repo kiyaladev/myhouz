@@ -1,36 +1,143 @@
 import { Request, Response } from 'express';
-import User, { IUser } from '../models/User';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { User, IUser } from '../models';
 
 export class UserController {
-  // Récupérer tous les utilisateurs
-  static async getAllUsers(req: Request, res: Response): Promise<void> {
+  // Inscription
+  static async register(req: Request, res: Response): Promise<void> {
     try {
-      const users = await User.find().select('-motDePasse');
-      res.json({
+      const { firstName, lastName, email, password, userType, location, professionalInfo } = req.body;
+
+      // Vérifier si l'utilisateur existe déjà
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        res.status(400).json({ 
+          success: false,
+          message: 'Un utilisateur avec cet email existe déjà' 
+        });
+        return;
+      }
+
+      // Hasher le mot de passe
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      // Créer l'utilisateur
+      const userData: Partial<IUser> = {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        userType,
+        location,
+        professionalInfo: userType === 'professionnel' ? professionalInfo : undefined
+      };
+
+      const user = new User(userData);
+      await user.save();
+
+      // Générer un token JWT
+      const token = jwt.sign(
+        { userId: user._id, userType: user.userType },
+        process.env.JWT_SECRET!,
+        { expiresIn: '7d' }
+      );
+
+      res.status(201).json({
         success: true,
-        data: users,
-        count: users.length
+        message: 'Utilisateur créé avec succès',
+        token,
+        data: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          userType: user.userType,
+          profileImage: user.profileImage
+        }
       });
     } catch (error) {
-      res.status(500).json({
+      console.error('Erreur lors de l\'inscription:', error);
+      res.status(500).json({ 
         success: false,
-        message: 'Erreur lors de la récupération des utilisateurs',
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        message: 'Erreur interne du serveur' 
       });
     }
   }
 
-  
-  // Récupérer un utilisateur par ID
-  static async getUserById(req: Request, res: Response): Promise<void> {
+    // Connexion
+  static async login(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const user = await User.findById(id).select('-motDePasse');
-      
+      const { email, password } = req.body;
+
+      // Trouver l'utilisateur
+      const user = await User.findOne({ email });
       if (!user) {
-        res.status(404).json({
+        res.status(401).json({ 
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Email ou mot de passe incorrect' 
+        });
+        return;
+      }
+
+      // Vérifier le mot de passe
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        res.status(401).json({ 
+          success: false,
+          message: 'Email ou mot de passe incorrect' 
+        });
+        return;
+      }
+
+      // Vérifier si le compte est actif
+      if (!user.isActive) {
+        res.status(401).json({ 
+          success: false,
+          message: 'Compte désactivé' 
+        });
+        return;
+      }
+
+      // Générer un token JWT
+      const token = jwt.sign(
+        { userId: user._id, userType: user.userType },
+        process.env.JWT_SECRET!,
+        { expiresIn: '7d' }
+      );
+
+      res.json({
+        success: true,
+        message: 'Connexion réussie',
+        token,
+        data: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          userType: user.userType,
+          profileImage: user.profileImage
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur interne du serveur' 
+      });
+    }
+  }
+
+  // Obtenir le profil utilisateur
+  static async getProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user.userId;
+      
+      const user = await User.findById(userId).select('-password');
+      if (!user) {
+        res.status(404).json({ 
+          success: false,
+          message: 'Utilisateur non trouvé' 
         });
         return;
       }
@@ -40,114 +147,158 @@ export class UserController {
         data: user
       });
     } catch (error) {
-      res.status(500).json({
+      console.error('Erreur lors de la récupération du profil:', error);
+      res.status(500).json({ 
         success: false,
-        message: 'Erreur lors de la récupération de l\'utilisateur',
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        message: 'Erreur interne du serveur' 
       });
     }
   }
 
-  // Créer un nouvel utilisateur
-  static async createUser(req: Request, res: Response): Promise<void> {
+  // Mettre à jour le profil
+  static async updateProfile(req: Request, res: Response): Promise<void> {
     try {
-      const { nom, email, motDePasse, telephone, role } = req.body;
+      const userId = (req as any).user.userId;
+      const updates = req.body;
 
-      // Vérifier si l'utilisateur existe déjà
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        res.status(400).json({
-          success: false,
-          message: 'Un utilisateur avec cet email existe déjà'
-        });
-        return;
-      }
+      // Supprimer les champs non modifiables
+      delete updates.email;
+      delete updates.password;
+      delete updates.userType;
 
-      const newUser = new User({
-        nom,
-        email,
-        motDePasse, // Note: En production, hasher le mot de passe avec bcrypt
-        telephone,
-        role
-      });
-
-      const savedUser = await newUser.save();
-      
-      // Retourner l'utilisateur sans le mot de passe
-      const userResponse = savedUser.toObject();
-      const { motDePasse: _, ...userWithoutPassword } = userResponse;
-
-      res.status(201).json({
-        success: true,
-        message: 'Utilisateur créé avec succès',
-        data: userWithoutPassword
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: 'Erreur lors de la création de l\'utilisateur',
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
-      });
-    }
-  }
-
-  // Mettre à jour un utilisateur
-  static async updateUser(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-
-      const updatedUser = await User.findByIdAndUpdate(
-        id,
-        updateData,
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { $set: updates, updatedAt: new Date() },
         { new: true, runValidators: true }
-      ).select('-motDePasse');
+      ).select('-password');
 
-      if (!updatedUser) {
-        res.status(404).json({
+      if (!user) {
+        res.status(404).json({ 
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Utilisateur non trouvé' 
         });
         return;
       }
 
       res.json({
         success: true,
-        message: 'Utilisateur mis à jour avec succès',
-        data: updatedUser
+        message: 'Profil mis à jour avec succès',
+        data: user
       });
     } catch (error) {
-      res.status(400).json({
+      console.error('Erreur lors de la mise à jour du profil:', error);
+      res.status(500).json({ 
         success: false,
-        message: 'Erreur lors de la mise à jour de l\'utilisateur',
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        message: 'Erreur interne du serveur' 
       });
     }
   }
 
-  // Supprimer un utilisateur
-  static async deleteUser(req: Request, res: Response): Promise<void> {
+  // Rechercher des professionnels
+  static async searchProfessionals(req: Request, res: Response): Promise<void> {
+    try {
+      const { 
+        services, 
+        location, 
+        city, 
+        radius = 50, 
+        rating = 0, 
+        verified, 
+        subscription,
+        page = 1, 
+        limit = 20 
+      } = req.query;
+
+      const query: any = {
+        userType: 'professionnel',
+        isActive: true
+      };
+
+      // Filtrer par services
+      if (services) {
+        const servicesArray = Array.isArray(services) ? services : [services];
+        query['professionalInfo.services'] = { $in: servicesArray };
+      }
+
+      // Filtrer par ville
+      if (city) {
+        query['location.city'] = new RegExp(city as string, 'i');
+      }
+
+      // Filtrer par note minimum
+      if (rating) {
+        query['professionalInfo.rating.average'] = { $gte: Number(rating) };
+      }
+
+      // Filtrer par statut vérifié
+      if (verified === 'true') {
+        query['professionalInfo.verified'] = true;
+      }
+
+      // Filtrer par type d'abonnement
+      if (subscription) {
+        query['professionalInfo.subscription.type'] = subscription;
+      }
+
+      const professionals = await User.find(query)
+        .select('-password')
+        .sort({ 
+          'professionalInfo.subscription.type': -1, // Premium en premier
+          'professionalInfo.rating.average': -1,
+          'professionalInfo.totalReviews': -1
+        })
+        .limit(Number(limit))
+        .skip((Number(page) - 1) * Number(limit));
+
+      const total = await User.countDocuments(query);
+
+      res.json({
+        success: true,
+        data: professionals,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / Number(limit))
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la recherche de professionnels:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur interne du serveur' 
+      });
+    }
+  }
+
+  // Obtenir un profil professionnel public
+  static async getProfessionalProfile(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const deletedUser = await User.findByIdAndDelete(id);
 
-      if (!deletedUser) {
-        res.status(404).json({
+      const professional = await User.findOne({
+        _id: id,
+        userType: 'professionnel',
+        isActive: true
+      }).select('-password');
+
+      if (!professional) {
+        res.status(404).json({ 
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Professionnel non trouvé' 
         });
         return;
       }
 
       res.json({
         success: true,
-        message: 'Utilisateur supprimé avec succès'
+        data: professional
       });
     } catch (error) {
-      res.status(500).json({
+      console.error('Erreur lors de la récupération du profil professionnel:', error);
+      res.status(500).json({ 
         success: false,
-        message: 'Erreur lors de la suppression de l\'utilisateur',
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        message: 'Erreur interne du serveur' 
       });
     }
   }
