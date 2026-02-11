@@ -16,16 +16,18 @@ import {
   Search,
   Package,
   Users,
+  Heart,
+  Settings,
 } from 'lucide-react';
 
 // Mock data
 const user = { firstName: 'Marie' };
 
 const overviewCards = [
-  { label: 'Mes Ideabooks', count: 5, icon: BookOpen, color: 'bg-emerald-100 text-emerald-600' },
-  { label: 'Mes Commandes', count: 3, icon: ShoppingBag, color: 'bg-blue-100 text-blue-600' },
-  { label: 'Mes Avis', count: 8, icon: Star, color: 'bg-amber-100 text-amber-600' },
-  { label: 'Messages', count: 2, icon: MessageCircle, color: 'bg-purple-100 text-purple-600' },
+  { label: 'Mes Ideabooks', count: 5, icon: BookOpen, color: 'bg-emerald-100 text-emerald-600', href: '/dashboard/ideabooks' },
+  { label: 'Mes Commandes', count: 3, icon: ShoppingBag, color: 'bg-blue-100 text-blue-600', href: '/dashboard/orders' },
+  { label: 'Mes Avis', count: 8, icon: Star, color: 'bg-amber-100 text-amber-600', href: '/dashboard/reviews' },
+  { label: 'Messages', count: 2, icon: MessageCircle, color: 'bg-purple-100 text-purple-600', href: '/messages' },
 ];
 
 const recentActivity = [
@@ -71,19 +73,21 @@ export default function DashboardPage() {
             {overviewCards.map((card) => {
               const Icon = card.icon;
               return (
-                <Card key={card.label}>
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-lg ${card.color}`}>
-                        <Icon className="h-5 w-5" />
+                <Link key={card.label} href={card.href}>
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardContent className="p-5">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-lg ${card.color}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-gray-900">{card.count}</p>
+                          <p className="text-sm text-gray-500">{card.label}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-2xl font-bold text-gray-900">{card.count}</p>
-                        <p className="text-sm text-gray-500">{card.label}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
@@ -137,6 +141,18 @@ export default function DashboardPage() {
                       <Button variant="outline">
                         <Users className="h-4 w-4 mr-2" />
                         Trouver un professionnel
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/favorites">
+                      <Button variant="outline">
+                        <Heart className="h-4 w-4 mr-2" />
+                        Mes favoris
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/settings">
+                      <Button variant="outline">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Paramètres
                       </Button>
                     </Link>
                   </div>

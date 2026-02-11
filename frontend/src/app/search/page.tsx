@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Search, FolderOpen, ShoppingBag, Users, FileText, Star, MapPin } from 'lucide-react';
+import { Search, FolderOpen, ShoppingBag, Users, FileText, Star, MapPin, SlidersHorizontal, X } from 'lucide-react';
 
 // --- Mock Data ---
 
@@ -96,13 +96,56 @@ const mockArticles = [
   },
 ];
 
+const projectCategories = ['Rénovation', 'Décoration', 'Aménagement extérieur', 'Construction'];
+const articleCategories = ['Tendances', 'Conseils', 'Guides', 'Interviews'];
+
 // --- Search Results Component ---
 
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
 
-  const totalResults = mockProjects.length + mockProducts.length + mockProfessionals.length + mockArticles.length;
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<string | null>(null);
+  const [filterPriceMin, setFilterPriceMin] = useState<string>('');
+  const [filterPriceMax, setFilterPriceMax] = useState<string>('');
+  const [filterCity, setFilterCity] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('all');
+
+  const hasActiveFilters = filterCategory || filterPriceMin || filterPriceMax || filterCity;
+
+  const clearFilters = () => {
+    setFilterCategory(null);
+    setFilterPriceMin('');
+    setFilterPriceMax('');
+    setFilterCity('');
+  };
+
+  const filteredProjects = useMemo(() => {
+    if (!filterCategory) return mockProjects;
+    return mockProjects.filter((p) => p.category === filterCategory);
+  }, [filterCategory]);
+
+  const filteredProducts = useMemo(() => {
+    let products = [...mockProducts];
+    if (filterPriceMin) products = products.filter((p) => p.price >= Number(filterPriceMin));
+    if (filterPriceMax) products = products.filter((p) => p.price <= Number(filterPriceMax));
+    return products;
+  }, [filterPriceMin, filterPriceMax]);
+
+  const filteredProfessionals = useMemo(() => {
+    if (!filterCity) return mockProfessionals;
+    return mockProfessionals.filter((p) =>
+      p.city.toLowerCase().includes(filterCity.toLowerCase())
+    );
+  }, [filterCity]);
+
+  const filteredArticles = useMemo(() => {
+    if (!filterCategory) return mockArticles;
+    return mockArticles.filter((a) => a.category === filterCategory);
+  }, [filterCategory]);
+
+  const totalResults = filteredProjects.length + filteredProducts.length + filteredProfessionals.length + filteredArticles.length;
 
   if (!query) {
     return (
@@ -114,50 +157,145 @@ function SearchResults() {
     );
   }
 
+  // Show relevant filter categories based on active tab
+  const showCategoryFilter = activeTab === 'all' || activeTab === 'projects' || activeTab === 'articles';
+  const showPriceFilter = activeTab === 'all' || activeTab === 'products';
+  const showCityFilter = activeTab === 'all' || activeTab === 'professionals';
+
+  const categoryOptions = activeTab === 'articles' ? articleCategories : projectCategories;
+
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Résultats pour « {query} »
-        </h1>
-        <p className="text-gray-500 mt-1">{totalResults} résultats trouvés</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Résultats pour « {query} »
+            </h1>
+            <p className="text-gray-500 mt-1">{totalResults} résultats trouvés</p>
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              showFilters ? 'bg-emerald-600 text-white' : 'bg-white border text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtres
+            {hasActiveFilters && (
+              <span className="ml-1 bg-white text-emerald-600 rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold">
+                !
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Filter panel */}
+        {showFilters && (
+          <div className="mt-4 p-4 bg-white rounded-lg border space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-800">Affiner les résultats</span>
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
+                  <X className="h-3 w-3" /> Réinitialiser
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Category filter */}
+              {showCategoryFilter && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                  <select
+                    value={filterCategory || ''}
+                    onChange={(e) => setFilterCategory(e.target.value || null)}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="">Toutes les catégories</option>
+                    {categoryOptions.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Price filter */}
+              {showPriceFilter && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prix (€)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filterPriceMin}
+                      onChange={(e) => setFilterPriceMin(e.target.value)}
+                      className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filterPriceMax}
+                      onChange={(e) => setFilterPriceMax(e.target.value)}
+                      className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* City filter */}
+              {showCityFilter && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
+                  <input
+                    type="text"
+                    placeholder="Rechercher une ville..."
+                    value={filterCity}
+                    onChange={(e) => setFilterCity(e.target.value)}
+                    className="w-full text-sm border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="all" onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="all">Tous ({totalResults})</TabsTrigger>
-          <TabsTrigger value="projects">Projets ({mockProjects.length})</TabsTrigger>
-          <TabsTrigger value="products">Produits ({mockProducts.length})</TabsTrigger>
-          <TabsTrigger value="professionals">Professionnels ({mockProfessionals.length})</TabsTrigger>
-          <TabsTrigger value="articles">Articles ({mockArticles.length})</TabsTrigger>
+          <TabsTrigger value="projects">Projets ({filteredProjects.length})</TabsTrigger>
+          <TabsTrigger value="products">Produits ({filteredProducts.length})</TabsTrigger>
+          <TabsTrigger value="professionals">Professionnels ({filteredProfessionals.length})</TabsTrigger>
+          <TabsTrigger value="articles">Articles ({filteredArticles.length})</TabsTrigger>
         </TabsList>
 
         {/* All Results */}
         <TabsContent value="all">
           <SectionHeading icon={<FolderOpen className="w-5 h-5" />} title="Projets" />
-          <ProjectsGrid projects={mockProjects} />
+          <ProjectsGrid projects={filteredProjects} />
           <SectionHeading icon={<ShoppingBag className="w-5 h-5" />} title="Produits" className="mt-10" />
-          <ProductsGrid products={mockProducts} />
+          <ProductsGrid products={filteredProducts} />
           <SectionHeading icon={<Users className="w-5 h-5" />} title="Professionnels" className="mt-10" />
-          <ProfessionalsGrid professionals={mockProfessionals} />
+          <ProfessionalsGrid professionals={filteredProfessionals} />
           <SectionHeading icon={<FileText className="w-5 h-5" />} title="Articles" className="mt-10" />
-          <ArticlesGrid articles={mockArticles} />
+          <ArticlesGrid articles={filteredArticles} />
         </TabsContent>
 
         <TabsContent value="projects">
-          <ProjectsGrid projects={mockProjects} />
+          <ProjectsGrid projects={filteredProjects} />
         </TabsContent>
 
         <TabsContent value="products">
-          <ProductsGrid products={mockProducts} />
+          <ProductsGrid products={filteredProducts} />
         </TabsContent>
 
         <TabsContent value="professionals">
-          <ProfessionalsGrid professionals={mockProfessionals} />
+          <ProfessionalsGrid professionals={filteredProfessionals} />
         </TabsContent>
 
         <TabsContent value="articles">
-          <ArticlesGrid articles={mockArticles} />
+          <ArticlesGrid articles={filteredArticles} />
         </TabsContent>
       </Tabs>
     </>

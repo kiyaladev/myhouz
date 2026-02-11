@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import Layout from '@/components/layout/Layout';
 import { ReviewCard } from '@/components/reviews/ReviewCard';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { ReviewSummary } from '@/components/reviews/ReviewSummary';
+import { Star, SlidersHorizontal } from 'lucide-react';
 
 const mockReviews = [
   {
@@ -58,7 +59,39 @@ const mockReviews = [
 
 const mockDistribution = { 5: 45, 4: 30, 3: 15, 2: 7, 1: 3 };
 
+type SortOption = 'recent' | 'rating-desc' | 'rating-asc' | 'helpful';
+
 export default function ReviewsPage() {
+  const [filterRating, setFilterRating] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('recent');
+
+  const filteredAndSorted = useMemo(() => {
+    let reviews = [...mockReviews];
+
+    // Filter by rating
+    if (filterRating !== null) {
+      reviews = reviews.filter((r) => r.rating === filterRating);
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'rating-desc':
+        reviews.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'rating-asc':
+        reviews.sort((a, b) => a.rating - b.rating);
+        break;
+      case 'helpful':
+        reviews.sort((a, b) => (b.helpful?.yes ?? 0) - (a.helpful?.yes ?? 0));
+        break;
+      case 'recent':
+      default:
+        break; // Already in chronological order from mock data
+    }
+
+    return reviews;
+  }, [filterRating, sortBy]);
+
   return (
     <Layout>
       <section className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 py-16">
@@ -79,11 +112,64 @@ export default function ReviewsPage() {
             />
           </div>
 
+          {/* Filter & Sort Controls */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 bg-white rounded-lg border">
+            {/* Rating filter */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <SlidersHorizontal className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600 font-medium">Filtrer :</span>
+              <button
+                onClick={() => setFilterRating(null)}
+                className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                  filterRating === null
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Tous
+              </button>
+              {[5, 4, 3, 2, 1].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setFilterRating(filterRating === star ? null : star)}
+                  className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm transition-colors ${
+                    filterRating === star
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {star} <Star className="h-3 w-3 fill-current" />
+                </button>
+              ))}
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 font-medium">Trier :</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="recent">Plus récents</option>
+                <option value="rating-desc">Note décroissante</option>
+                <option value="rating-asc">Note croissante</option>
+                <option value="helpful">Plus utiles</option>
+              </select>
+            </div>
+          </div>
+
           {/* Review list */}
           <div className="space-y-4 mb-12">
-            {mockReviews.map((review, index) => (
-              <ReviewCard key={index} {...review} />
-            ))}
+            {filteredAndSorted.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Aucun avis trouvé pour cette note.
+              </div>
+            ) : (
+              filteredAndSorted.map((review, index) => (
+                <ReviewCard key={index} {...review} />
+              ))
+            )}
           </div>
 
           {/* Review form */}
