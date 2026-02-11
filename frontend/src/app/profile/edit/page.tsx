@@ -73,6 +73,8 @@ export default function EditProfilePage() {
       const updates: Record<string, unknown> = {
         firstName: formData.firstName,
         lastName: formData.lastName,
+        phone: formData.phone || undefined,
+        bio: formData.bio || undefined,
         location: {
           city: formData.city,
           country: formData.country,

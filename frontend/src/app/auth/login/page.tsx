@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
@@ -10,9 +10,11 @@ import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, register } = useAuth();
+  const defaultTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
 
   const [loginData, setLoginData] = useState({
     email: '',
@@ -114,7 +116,7 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs defaultValue={defaultTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Connexion</TabsTrigger>
                 <TabsTrigger value="register">Inscription</TabsTrigger>
@@ -347,5 +349,17 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500">Chargement...</div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

@@ -99,7 +99,7 @@ export default function Header() {
                   Connexion
                 </Link>
                 <Link
-                  href="/auth/login"
+                  href="/auth/login?tab=register"
                   className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
                 >
                   S&apos;inscrire
@@ -166,7 +166,7 @@ export default function Header() {
                       Connexion
                     </Link>
                     <Link
-                      href="/auth/login"
+                      href="/auth/login?tab=register"
                       className="block px-3 py-2 text-base font-medium bg-emerald-600 text-white hover:bg-emerald-700 rounded-md"
                     >
                       S&apos;inscrire

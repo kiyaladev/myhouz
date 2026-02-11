@@ -208,7 +208,7 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
               <Card key={project.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
-                <Link href={`/projects/${project.id}`}>
+                <Link href={`/projects/${project.id}`} aria-label={`Voir le projet : ${project.title}`}>
                 <div className="relative">
                   <img
                     src={project.images[0]}
