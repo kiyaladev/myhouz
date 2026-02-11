@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface ProfessionalProject {
   _id: string;
@@ -91,9 +92,36 @@ const mockProjects: ProfessionalProject[] = [
 
 export default function ProfessionalDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [professional, setProfessional] = useState<ProfessionalProfile | null>(null);
   const [projects, setProjects] = useState<ProfessionalProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [quoteForm, setQuoteForm] = useState({ projectDescription: '', category: '', budget: '', timeline: '' });
+  const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+  const [quoteSubmitted, setQuoteSubmitted] = useState(false);
+  const [quoteError, setQuoteError] = useState('');
+
+  const handleSubmitQuote = async () => {
+    if (!quoteForm.projectDescription || !quoteForm.category || quoteForm.projectDescription.length < 20 || isSubmittingQuote) return;
+    setIsSubmittingQuote(true);
+    setQuoteError('');
+    try {
+      const response = await api.post('/quotes', {
+        professional: params.id,
+        ...quoteForm,
+      });
+      if (response.success) {
+        setQuoteSubmitted(true);
+        setShowQuoteForm(false);
+      }
+    } catch {
+      setQuoteError('Erreur lors de l\'envoi de la demande. Veuillez réessayer.');
+    } finally {
+      setIsSubmittingQuote(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProfessional = async () => {
@@ -285,12 +313,96 @@ export default function ProfessionalDetailPage() {
             <div className="lg:col-span-1">
               <Card className="mb-6">
                 <CardContent className="p-6">
-                  <Button className="w-full mb-3">Demander un devis</Button>
+                  <Button className="w-full mb-3" onClick={() => {
+                    if (!isAuthenticated) { router.push('/auth/login'); return; }
+                    setShowQuoteForm(true);
+                  }}>
+                    {quoteSubmitted ? '✓ Devis demandé' : 'Demander un devis'}
+                  </Button>
                   <Button variant="outline" className="w-full">
                     Contacter
                   </Button>
                 </CardContent>
               </Card>
+
+              {showQuoteForm && (
+                <Card className="mb-6">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-gray-900 mb-4">Demande de devis</h3>
+                    {quoteError && (
+                      <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{quoteError}</div>
+                    )}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description du projet *</label>
+                        <textarea
+                          value={quoteForm.projectDescription}
+                          onChange={(e) => setQuoteForm(prev => ({ ...prev, projectDescription: e.target.value }))}
+                          placeholder="Décrivez votre projet en détail..."
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie *</label>
+                        <select
+                          value={quoteForm.category}
+                          onChange={(e) => setQuoteForm(prev => ({ ...prev, category: e.target.value }))}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        >
+                          <option value="">Sélectionner...</option>
+                          <option value="renovation">Rénovation</option>
+                          <option value="decoration">Décoration</option>
+                          <option value="architecture">Architecture</option>
+                          <option value="amenagement">Aménagement</option>
+                          <option value="paysagisme">Paysagisme</option>
+                          <option value="autre">Autre</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Budget estimé</label>
+                        <select
+                          value={quoteForm.budget}
+                          onChange={(e) => setQuoteForm(prev => ({ ...prev, budget: e.target.value }))}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        >
+                          <option value="">Non défini</option>
+                          <option value="< 5 000 €">Moins de 5 000 €</option>
+                          <option value="5 000 - 15 000 €">5 000 - 15 000 €</option>
+                          <option value="15 000 - 50 000 €">15 000 - 50 000 €</option>
+                          <option value="> 50 000 €">Plus de 50 000 €</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Délai souhaité</label>
+                        <select
+                          value={quoteForm.timeline}
+                          onChange={(e) => setQuoteForm(prev => ({ ...prev, timeline: e.target.value }))}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        >
+                          <option value="">Non défini</option>
+                          <option value="urgent">Urgent (&lt; 1 mois)</option>
+                          <option value="1-3 mois">1 à 3 mois</option>
+                          <option value="3-6 mois">3 à 6 mois</option>
+                          <option value="> 6 mois">Plus de 6 mois</option>
+                        </select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                          onClick={handleSubmitQuote}
+                          disabled={!quoteForm.projectDescription || quoteForm.projectDescription.length < 20 || !quoteForm.category || isSubmittingQuote}
+                        >
+                          {isSubmittingQuote ? 'Envoi...' : 'Envoyer la demande'}
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowQuoteForm(false)}>
+                          Annuler
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card className="mb-6">
                 <CardContent className="p-6">

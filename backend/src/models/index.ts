@@ -11,6 +11,7 @@ export { ForumPost, ForumReply } from './Forum';
 export { default as Notification } from './Notification';
 export { default as Cart } from './Cart';
 export { default as ArticleComment } from './ArticleComment';
+export { default as Quote } from './Quote';
 
 // Export interfaces
 export type { IUser } from './User';
@@ -25,3 +26,4 @@ export type { IForumPost, IForumReply } from './Forum';
 export type { INotification } from './Notification';
 export type { ICart, ICartItem } from './Cart';
 export type { IArticleComment } from './ArticleComment';
+export type { IQuote } from './Quote';
