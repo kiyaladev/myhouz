@@ -169,7 +169,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 6.9 | Page liste des produits avec filtres | ✅ | `frontend/src/app/products/page.tsx` |
-| 6.10 | Page détail d'un produit | ❌ | Photos, description, spécifications, avis |
+| 6.10 | Page détail d'un produit | ✅ | `frontend/src/app/products/[id]/page.tsx` — Galerie, prix, spécifications, vendeur |
 | 6.11 | Galerie d'images produit (zoom, slider) | ❌ | Carrousel avec zoom au survol |
 | 6.12 | Composant panier (sidebar/drawer) | ❌ | — |
 | 6.13 | Page panier récapitulatif | ❌ | Liste des articles, quantités, total |
@@ -193,8 +193,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 7.6 | Page liste des ideabooks de l'utilisateur | ❌ | Grille de carnets avec couverture |
-| 7.7 | Page détail d'un ideabook | ❌ | Grille masonry des éléments sauvegardés |
+| 7.6 | Page liste des ideabooks de l'utilisateur | ✅ | `frontend/src/app/ideabooks/page.tsx` — Grille de carnets avec couverture, recherche |
+| 7.7 | Page détail d'un ideabook | ✅ | `frontend/src/app/ideabooks/[id]/page.tsx` — Grille des éléments, infos créateur, tags |
 | 7.8 | Modal « Sauvegarder dans un ideabook » | ❌ | Popup lors du clic sur le cœur/bookmark |
 | 7.9 | Création rapide d'un ideabook | ❌ | Formulaire minimal (nom, description) |
 | 7.10 | Drag & drop pour réorganiser les éléments | ❌ | — |
@@ -217,8 +217,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 8.6 | Page liste des articles (blog/magazine) | ❌ | Grille avec image, titre, extrait |
-| 8.7 | Page détail d'un article | ❌ | Contenu riche, images, auteur |
+| 8.6 | Page liste des articles (blog/magazine) | ✅ | `frontend/src/app/articles/page.tsx` — Featured article, grille, filtres catégorie |
+| 8.7 | Page détail d'un article | ✅ | `frontend/src/app/articles/[slug]/page.tsx` — Contenu, auteur, articles liés, partage |
 | 8.8 | Filtrage par catégorie / tag | ❌ | — |
 | 8.9 | Section commentaires | ❌ | — |
 | 8.10 | Partage sur les réseaux sociaux | ❌ | Boutons de partage |
@@ -241,8 +241,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 9.7 | Page liste des discussions | ❌ | Liste triée par activité récente |
-| 9.8 | Page détail d'une discussion + réponses | ❌ | Thread de conversation |
+| 9.7 | Page liste des discussions | ✅ | `frontend/src/app/forum/page.tsx` — Liste avec filtres catégorie, recherche, badges résolu |
+| 9.8 | Page détail d'une discussion + réponses | ✅ | `frontend/src/app/forum/[id]/page.tsx` — Thread, réponses, meilleure réponse, formulaire |
 | 9.9 | Formulaire pour poser une question | ❌ | Titre, catégorie, description, images |
 | 9.10 | Formulaire de réponse | ❌ | Éditeur texte riche ou Markdown |
 | 9.11 | Recherche dans le forum | ❌ | — |
@@ -394,13 +394,13 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 17.1 | Header / Navigation | ✅ | `frontend/src/components/layout/Header.tsx` |
 | 17.2 | Footer | ✅ | `frontend/src/components/layout/Footer.tsx` |
-| 17.3 | Page « À propos » | ❌ | — |
-| 17.4 | Page « Conditions d'utilisation » | ❌ | — |
-| 17.5 | Page « Politique de confidentialité » | ❌ | — |
+| 17.3 | Page « À propos » | ✅ | `frontend/src/app/about/page.tsx` — Mission, valeurs, stats, CTA |
+| 17.4 | Page « Conditions d'utilisation » | ✅ | `frontend/src/app/terms/page.tsx` — Sections juridiques en français |
+| 17.5 | Page « Politique de confidentialité » | ✅ | `frontend/src/app/privacy/page.tsx` — Sections RGPD en français |
 | 17.6 | Page « Mentions légales » | ❌ | — |
-| 17.7 | Page « Contact » | ❌ | Formulaire de contact |
+| 17.7 | Page « Contact » | ✅ | `frontend/src/app/contact/page.tsx` — Formulaire + infos contact |
 | 17.8 | Page « Centre d'aide / FAQ » | ❌ | — |
-| 17.9 | Page 404 personnalisée | ❌ | — |
+| 17.9 | Page 404 personnalisée | ✅ | `frontend/src/app/not-found.tsx` — Page 404 avec redirection accueil |
 | 17.10 | Metadata SEO par page (title, description, OG) | 🟡 | Metadata de base dans layout.tsx |
 | 17.11 | Sitemap.xml dynamique | ❌ | — |
 | 17.12 | Fichier robots.txt | ❌ | — |
@@ -419,14 +419,14 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 18.5 | Composant Carousel / Slider | ❌ | Pour les photos et produits |
 | 18.6 | Composant Masonry Grid | ❌ | Grille Pinterest-style pour les photos |
 | 18.7 | Composant Lightbox / visionneuse d'images | ❌ | Modal plein écran avec navigation |
-| 18.8 | Composant Skeleton / loading states | ❌ | Placeholders pendant le chargement |
+| 18.8 | Composant Skeleton / loading states | ✅ | `frontend/src/components/ui/skeleton.tsx` |
 | 18.9 | Composant Toast / notifications | ❌ | Messages de feedback utilisateur |
 | 18.10 | Composant Modal de confirmation | ❌ | — |
 | 18.11 | Composant Dropdown menu | ❌ | Menu utilisateur, actions |
-| 18.12 | Composant Breadcrumb | ❌ | Navigation hiérarchique |
-| 18.13 | Composant Pagination | ❌ | Pagination réutilisable |
+| 18.12 | Composant Breadcrumb | ✅ | `frontend/src/components/ui/breadcrumb.tsx` — Navigation hiérarchique |
+| 18.13 | Composant Pagination | ✅ | `frontend/src/components/ui/pagination.tsx` — Composant réutilisable |
 | 18.14 | Composant Rating (étoiles) | 🟡 | SVG inline, à extraire en composant |
-| 18.15 | Composant Empty State | ❌ | Illustration + message quand pas de données |
+| 18.15 | Composant Empty State | ✅ | `frontend/src/components/ui/empty-state.tsx` — Titre, description, action |
 | 18.16 | Animations et transitions | 🟡 | Hover effects basiques, à enrichir |
 | 18.17 | Mode sombre (optionnel) | ❌ | — |
 | 18.18 | Icônes cohérentes (Lucide React) | 🟡 | Lucide installé, SVG inline à remplacer |
@@ -485,10 +485,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Page d'Accueil | 50% |
 | Galerie de Photos / Projets | 45% |
 | Annuaire des Professionnels | 35% |
-| Marketplace (Produits) | 30% |
-| Ideabooks | 20% |
-| Articles & Magazine | 20% |
-| Forum / Discussions | 20% |
+| Marketplace (Produits) | 40% |
+| Ideabooks | 35% |
+| Articles & Magazine | 40% |
+| Forum / Discussions | 40% |
 | Messagerie | 20% |
 | Avis & Évaluations | 15% |
 | Recherche Globale | 10% |
@@ -496,12 +496,12 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Tableau de Bord Professionnel | 0% |
 | Commandes & Paiements | 15% |
 | Notifications | 0% |
-| Pages Statiques & SEO | 20% |
-| Design System & UI | 40% |
+| Pages Statiques & SEO | 45% |
+| Design System & UI | 55% |
 | Performance & Optimisation | 5% |
 | Tests | 0% |
 | Déploiement & CI/CD | 0% |
-| **Total global** | **~25%** |
+| **Total global** | **~30%** |
 
 ---
 
