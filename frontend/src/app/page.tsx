@@ -72,22 +72,27 @@ export default function HomePage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-emerald-50 via-white to-blue-50 py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative min-h-[500px] lg:min-h-[600px] flex items-center">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&h=900&fit=crop')" }}
+        />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="text-center">
-            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6">
               Transformez votre maison en 
-              <span className="text-emerald-600"> rêve</span>
+              <span className="text-emerald-400"> rêve</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto">
               Découvrez des millions d&apos;idées pour votre intérieur, connectez-vous avec des professionnels 
               qualifiés et trouvez les meilleurs produits pour vos projets.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="px-8">
+              <Button size="lg" className="px-8 bg-emerald-600 hover:bg-emerald-700 text-white">
                 Explorer les projets
               </Button>
-              <Button variant="outline" size="lg" className="px-8">
+              <Button variant="outline" size="lg" className="px-8 border-white text-white hover:bg-white/10">
                 Trouver un professionnel
               </Button>
             </div>
