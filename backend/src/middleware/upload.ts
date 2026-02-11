@@ -1,31 +1,8 @@
 import multer from 'multer';
-import path from 'path';
 import { Request } from 'express';
 
-// Configuration du stockage local (pour développement)
-const storage = multer.diskStorage({
-  destination: (req: Request, file: Express.Multer.File, cb: any) => {
-    const uploadDir = getUploadDirectory(req.path);
-    cb(null, uploadDir);
-  },
-  filename: (req: Request, file: Express.Multer.File, cb: any) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${extension}`);
-  }
-});
-
-// Fonction pour déterminer le répertoire d'upload basé sur le chemin
-function getUploadDirectory(requestPath: string): string {
-  const baseDir = 'uploads';
-  
-  if (requestPath.includes('/projects/')) return `${baseDir}/projects`;
-  if (requestPath.includes('/products/')) return `${baseDir}/products`;
-  if (requestPath.includes('/users/')) return `${baseDir}/profiles`;
-  if (requestPath.includes('/ideabooks/')) return `${baseDir}/ideabooks`;
-  if (requestPath.includes('/reviews/')) return `${baseDir}/reviews`;
-  return `${baseDir}/misc`;
-}
+// Stockage en mémoire : les fichiers sont transférés vers MinIO via uploadService
+const storage = multer.memoryStorage();
 
 // Configuration de multer
 const upload = multer({

@@ -42,10 +42,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 1.4 | Variables d'environnement (.env) | ✅ | `.env.example` présent |
 | 1.5 | Configuration CORS | ✅ | Intégré dans server.ts |
 | 1.6 | Configuration des uploads fichiers (Multer) | ✅ | `backend/src/middleware/upload.ts` |
-| 1.7 | Intégration Cloudinary pour stockage images | ❌ | Dépendance installée mais non configurée |
+| 1.7 | Intégration MinIO pour stockage images (S3-compatible) | ✅ | `backend/src/config/minio.ts`, `backend/src/services/uploadService.ts`, routes `/api/uploads` |
 | 1.8 | Configuration Stripe (paiements) | ❌ | Dépendance installée mais non intégrée |
 | 1.9 | Configuration Nodemailer (e-mails) | ❌ | Dépendance installée mais non intégrée |
-| 1.10 | Docker / Docker Compose pour dev local | ❌ | — |
+| 1.10 | Docker / Docker Compose pour dev local | ✅ | `docker-compose.yml` avec MongoDB + MinIO |
 | 1.11 | Seed data / données de démonstration | ❌ | Script pour populer la BD avec des données de démo |
 
 ---
@@ -480,7 +480,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 | Module | Progression estimée |
 |--------|-------------------|
-| Infrastructure & Configuration | 60% |
+| Infrastructure & Configuration | 70% |
 | Authentification & Utilisateurs | 40% |
 | Page d'Accueil | 50% |
 | Galerie de Photos / Projets | 35% |
