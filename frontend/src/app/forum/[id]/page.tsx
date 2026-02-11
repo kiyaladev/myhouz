@@ -140,8 +140,19 @@ export default function ForumDiscussionPage() {
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyContent.trim()) return;
-    // Placeholder: would call api.post(`/forum/${params.id}/replies`, { content: replyContent })
-    setReplyContent('');
+    try {
+      const response = await api.post(`/forum/${params.id}/replies`, { content: replyContent });
+      if (response.success && response.data) {
+        setDiscussion(prev => prev ? {
+          ...prev,
+          replies: [...prev.replies, response.data as Reply],
+          replyCount: prev.replyCount + 1
+        } : prev);
+      }
+      setReplyContent('');
+    } catch (error) {
+      console.error('Erreur lors de la publication:', error);
+    }
   };
 
   if (isLoading) {
