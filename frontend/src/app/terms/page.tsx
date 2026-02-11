@@ -1,6 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Layout from '../../components/layout/Layout';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Conditions d\'utilisation - MyHouz',
+  description: 'Consultez les conditions générales d\'utilisation de la plateforme MyHouz.',
+};
 
 export default function TermsPage() {
   return (

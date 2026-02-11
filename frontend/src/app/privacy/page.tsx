@@ -1,6 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Layout from '../../components/layout/Layout';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Politique de confidentialité - MyHouz',
+  description: 'Découvrez comment MyHouz protège vos données personnelles et respecte votre vie privée.',
+};
 
 export default function PrivacyPage() {
   return (

@@ -361,6 +361,66 @@ export class ReviewController {
       });
     }
   }
+
+  // Signaler un avis inapproprié
+  static async reportReview(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user.userId;
+      const { reason } = req.body;
+
+      if (!reason || reason.trim().length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'La raison du signalement est requise'
+        });
+        return;
+      }
+
+      const review = await Review.findById(id);
+      if (!review) {
+        res.status(404).json({
+          success: false,
+          message: 'Avis non trouvé'
+        });
+        return;
+      }
+
+      // Vérifier que l'utilisateur n'a pas déjà signalé cet avis
+      const alreadyReported = review.reports?.some(
+        (report: any) => report.user.toString() === userId
+      );
+
+      if (alreadyReported) {
+        res.status(400).json({
+          success: false,
+          message: 'Vous avez déjà signalé cet avis'
+        });
+        return;
+      }
+
+      review.reports = review.reports || [];
+      review.reports.push({
+        user: userId,
+        reason: reason.trim(),
+        createdAt: new Date()
+      });
+      review.reportCount = review.reports.length;
+
+      await review.save();
+
+      res.json({
+        success: true,
+        message: 'Avis signalé avec succès'
+      });
+    } catch (error) {
+      console.error('Erreur lors du signalement de l\'avis:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
 }
 
 // Fonction utilitaire pour mettre à jour la note moyenne d'une entité

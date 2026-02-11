@@ -18,6 +18,7 @@ import {
   Users,
   Heart,
   Settings,
+  Bell,
 } from 'lucide-react';
 
 // Mock data
@@ -153,6 +154,12 @@ export default function DashboardPage() {
                       <Button variant="outline">
                         <Settings className="h-4 w-4 mr-2" />
                         Paramètres
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/notifications">
+                      <Button variant="outline">
+                        <Bell className="h-4 w-4 mr-2" />
+                        Notifications
                       </Button>
                     </Link>
                   </div>
