@@ -85,7 +85,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 3.1 | Hero section avec image/vidéo de fond | 🟡 | Gradient de fond, pas d'image/vidéo réelle |
+| 3.1 | Hero section avec image/vidéo de fond | ✅ | Image Unsplash plein écran avec overlay sombre dans `page.tsx` |
 | 3.2 | Barre de recherche principale | ✅ | Présente sur la page d'accueil |
 | 3.3 | Grille catégories par pièce (cuisine, salon, etc.) | ✅ | 4 catégories avec images Unsplash |
 | 3.4 | Section statistiques | ✅ | Chiffres statiques |
@@ -96,7 +96,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 3.9 | Section « Produits populaires » | ✅ | Grille 4 produits avec image, prix, notation |
 | 3.10 | Section « Articles récents » | ✅ | Grille 3 articles avec image, catégorie, excerpt |
 | 3.11 | Personnalisation selon le profil connecté | ❌ | Recommandations basées sur les préférences |
-| 3.12 | Hero image/vidéo immersive (style Houzz) | ❌ | Grande photo plein écran avec overlay |
+| 3.12 | Hero image/vidéo immersive (style Houzz) | ✅ | Grande photo plein écran Unsplash avec overlay + texte blanc |
 
 ---
 
@@ -136,9 +136,9 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 5.1 | Filtre utilisateurs de type professionnel | ✅ | Via `userType: 'professionnel'` |
 | 5.2 | Recherche géolocalisée (par ville/code postal) | 🟡 | Index géospatial dans le modèle User |
 | 5.3 | Filtrage par spécialité / service | ✅ | Filtre `services` dans `searchProfessionals` |
-| 5.4 | Système de notation moyen par professionnel | ❌ | Agrégation depuis les avis |
+| 5.4 | Système de notation moyen par professionnel | ✅ | `updateEntityRating()` — Agrégation MongoDB dans `ReviewController` |
 | 5.5 | Profil professionnel enrichi | 🟡 | Champs `professionalInfo` dans le modèle |
-| 5.6 | Demande de devis | ❌ | Endpoint + notification au professionnel |
+| 5.6 | Demande de devis | ✅ | `backend/src/models/Quote.ts` + `QuoteController` + routes `/api/quotes` |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
@@ -146,7 +146,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 5.7 | Page liste des professionnels | ✅ | `frontend/src/app/professionals/page.tsx` — Grille avec filtres (ville, spécialité) |
 | 5.8 | Page profil d'un professionnel | ✅ | `frontend/src/app/professionals/[id]/page.tsx` — Bio, services, infos |
 | 5.9 | Carte interactive (Google Maps / Mapbox) | ❌ | Localisation des pros sur une carte |
-| 5.10 | Formulaire de demande de devis | ❌ | Description du projet + envoi au pro |
+| 5.10 | Formulaire de demande de devis | ✅ | Formulaire dans `professionals/[id]/page.tsx` avec catégorie, budget, délai |
 | 5.11 | Bouton « Contacter ce professionnel » | ✅ | Bouton dans `projects/[id]/page.tsx` redirige vers messagerie |
 | 5.12 | Galerie des projets du professionnel | ✅ | Section portfolio dans `professionals/[id]/page.tsx` avec appel API `projects/professional/:id` |
 
@@ -173,10 +173,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 6.10 | Page détail d'un produit | ✅ | `frontend/src/app/products/[id]/page.tsx` — Galerie, prix, spécifications, vendeur |
 | 6.11 | Galerie d'images produit (zoom, slider) | ✅ | Lightbox intégré dans `products/[id]/page.tsx` avec zoom et navigation |
 | 6.12 | Composant panier (sidebar/drawer) | ✅ | `frontend/src/components/cart/CartSidebar.tsx` — Sidebar avec gestion quantités |
-| 6.13 | Page panier récapitulatif | 🟡 | Sidebar fonctionnel, page dédiée à faire |
+| 6.13 | Page panier récapitulatif | ✅ | `frontend/src/app/cart/page.tsx` — Page dédiée avec quantités, récapitulatif, frais de port |
 | 6.14 | Système de filtres avancés (sidebar) | ❌ | Filtres à facettes style Houzz |
 | 6.15 | Connexion au backend API | ✅ | `api.get('/products')` avec fallback mock data + pagination |
-| 6.16 | Suggestions de produits similaires | ❌ | Section « Vous aimerez aussi » |
+| 6.16 | Suggestions de produits similaires | ✅ | Section « Produits similaires » dans `products/[id]/page.tsx` avec appel API + fallback mock |
 | 6.17 | Contexte panier global | ✅ | `frontend/src/contexts/CartContext.tsx` avec badge dans header |
 
 ---
@@ -200,8 +200,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 7.8 | Modal « Sauvegarder dans un ideabook » | ✅ | `frontend/src/components/SaveToIdeabookModal.tsx` — Sélection ideabook + création rapide |
 | 7.9 | Création rapide d'un ideabook | ✅ | Intégré dans le modal SaveToIdeabook |
 | 7.10 | Drag & drop pour réorganiser les éléments | ❌ | — |
-| 7.11 | Partage d'ideabook (lien public, invitation) | ❌ | — |
-| 7.12 | Explorer les ideabooks publics populaires | ❌ | Page de découverte |
+| 7.11 | Partage d'ideabook (lien public, invitation) | ✅ | Panel partage dans `ideabooks/[id]/page.tsx` — Copier lien + invitation email avec permissions |
+| 7.12 | Explorer les ideabooks publics populaires | ✅ | `frontend/src/app/ideabooks/explore/page.tsx` — Page de découverte avec recherche, grille |
 
 ---
 
@@ -214,7 +214,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 8.2 | CRUD articles | ✅ | `ArticleController` |
 | 8.3 | Catégorisation des articles | ✅ | Champ catégorie enum dans le modèle (conseils/tendances/guides/interviews/actualites/diy) |
 | 8.4 | Système de commentaires sur articles | ✅ | `backend/src/models/ArticleComment.ts` + `ArticleController.getComments/addComment/updateComment/deleteComment/likeComment` |
-| 8.5 | Articles liés / suggestions | ❌ | — |
+| 8.5 | Articles liés / suggestions | ✅ | Sidebar « Articles similaires » dans `articles/[slug]/page.tsx` — Appel API par catégorie + fallback mock |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
@@ -222,7 +222,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 8.6 | Page liste des articles (blog/magazine) | ✅ | `frontend/src/app/articles/page.tsx` — Featured article, grille, filtres catégorie |
 | 8.7 | Page détail d'un article | ✅ | `frontend/src/app/articles/[slug]/page.tsx` — Contenu, auteur, articles liés, partage |
 | 8.8 | Filtrage par catégorie / tag | ✅ | Boutons catégorie dans `articles/page.tsx` + filtre API |
-| 8.9 | Section commentaires | 🟡 | Backend API disponible, UI frontend à implémenter |
+| 8.9 | Section commentaires | ✅ | Section commentaires dans `articles/[slug]/page.tsx` — Formulaire + liste + API intégrée |
 | 8.10 | Partage sur les réseaux sociaux | ✅ | Boutons Twitter, Facebook, Copier le lien dans `articles/[slug]/page.tsx` |
 | 8.11 | Composant éditeur de contenu riche (admin) | ❌ | WYSIWYG pour rédiger les articles |
 
@@ -238,7 +238,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 9.3 | Catégorisation des discussions | ✅ | Enum catégorie dans le modèle (decoration/renovation/jardinage/bricolage/architecture/general) |
 | 9.4 | Système de votes (upvote/downvote) | ✅ | `ForumController.votePost` + `ForumController.voteReply` + routes |
 | 9.5 | Marquer une réponse comme « meilleure réponse » | ✅ | `ForumController.markBestAnswer` + route `PUT /:postId/best-answer/:replyId` |
-| 9.6 | Modération (signalement, suppression) | ❌ | — |
+| 9.6 | Modération (signalement, suppression) | ✅ | `ForumController.reportPost` + route `POST /:id/report` + bouton signaler dans `forum/[id]/page.tsx` |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
@@ -482,15 +482,15 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 | Module | Progression estimée |
 |--------|-------------------|
-| Infrastructure & Configuration | 90% |
+| Infrastructure & Configuration | 100% |
 | Authentification & Utilisateurs | 90% |
-| Page d'Accueil | 75% |
+| Page d'Accueil | 85% |
 | Galerie de Photos / Projets | 85% |
-| Annuaire des Professionnels | 65% |
-| Marketplace (Produits) | 70% |
-| Ideabooks | 60% |
-| Articles & Magazine | 75% |
-| Forum / Discussions | 80% |
+| Annuaire des Professionnels | 80% |
+| Marketplace (Produits) | 80% |
+| Ideabooks | 85% |
+| Articles & Magazine | 90% |
+| Forum / Discussions | 95% |
 | Messagerie | 20% |
 | Avis & Évaluations | 15% |
 | Recherche Globale | 10% |
@@ -503,7 +503,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Performance & Optimisation | 5% |
 | Tests | 0% |
 | Déploiement & CI/CD | 0% |
-| **Total global** | **~50%** |
+| **Total global** | **~55%** |
 
 ---
 
