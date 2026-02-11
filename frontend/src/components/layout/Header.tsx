@@ -206,7 +206,12 @@ export default function Header() {
                     </button>
                   ))}
                   <button
-                    onClick={handleSearchSubmit as () => void}
+                    onClick={() => {
+                      if (searchQuery.trim()) {
+                        setShowSuggestions(false);
+                        router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                      }
+                    }}
                     className="flex items-center gap-2 w-full px-4 py-2.5 text-left text-sm text-emerald-600 hover:bg-emerald-50 border-t border-gray-100 transition-colors"
                   >
                     <Search className="h-4 w-4" />

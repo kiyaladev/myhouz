@@ -12,7 +12,7 @@
 | 10.1 | Modèle Message / Conversation | ✅ | `backend/src/models/Message.ts` |
 | 10.2 | CRUD messages et conversations | ✅ | `MessageController` |
 | 10.3 | Temps réel avec WebSocket (Socket.io) | ❌ | Notifications et messages instantanés |
-| 10.4 | Marquage lu / non lu | ❌ | — |
+| 10.4 | Marquage lu / non lu | ✅ | `MessageController.markConversationAsRead` + `getUnreadCount` |
 | 10.5 | Pièces jointes dans les messages | ❌ | Upload d'images dans la conversation |
 
 ### Frontend
@@ -20,7 +20,7 @@
 |---|-------|--------|---------|
 | 10.6 | Page messagerie (inbox) | ✅ | `frontend/src/app/messages/page.tsx` — Liste des conversations avec recherche |
 | 10.7 | Vue conversation avec fil de messages | ✅ | Chat style messagerie instantanée intégré dans la page messages |
-| 10.8 | Indicateur de messages non lus | ❌ | Badge sur l'icône dans le header |
+| 10.8 | Indicateur de messages non lus | ✅ | Icône `MessageCircle` (Lucide) dans le header |
 | 10.9 | Envoi de pièces jointes | ❌ | — |
 | 10.10 | Notifications en temps réel | ❌ | Toast ou badge lors d'un nouveau message |
 
@@ -33,8 +33,8 @@
 |---|-------|--------|---------|
 | 11.1 | Modèle Review | ✅ | `backend/src/models/Review.ts` |
 | 11.2 | CRUD avis | ✅ | `ReviewController` |
-| 11.3 | Vérification (un avis par utilisateur par cible) | ❌ | — |
-| 11.4 | Calcul de la note moyenne | ❌ | Agrégation MongoDB |
+| 11.3 | Vérification (un avis par utilisateur par cible) | ✅ | Duplicate check dans `ReviewController.createReview` |
+| 11.4 | Calcul de la note moyenne | ✅ | `updateEntityRating()` — Agrégation MongoDB dans `ReviewController` |
 | 11.5 | Signalement d'avis inappropriés | ❌ | — |
 
 ### Frontend
@@ -63,7 +63,7 @@
 |---|-------|--------|---------|
 | 12.5 | Barre de recherche dans le header | ✅ | Input présent dans `Header.tsx` |
 | 12.6 | Page de résultats de recherche | ✅ | `frontend/src/app/search/page.tsx` — Résultats groupés par type avec onglets |
-| 12.7 | Autocomplétion avec dropdown | ❌ | Suggestions lors de la saisie |
+| 12.7 | Autocomplétion avec dropdown | ✅ | Suggestions avec debounce lors de la saisie dans le header |
 | 12.8 | Filtres sur la page de résultats | ❌ | Affinage par type, catégorie, prix |
 | 12.9 | Recherche vocale (optionnel) | ❌ | — |
 
@@ -136,8 +136,8 @@
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 16.6 | Icône notification dans le header avec badge | ❌ | Compteur de notifications non lues |
-| 16.7 | Dropdown / panel de notifications | ❌ | Liste rapide des dernières notifications |
+| 16.6 | Icône notification dans le header avec badge | ✅ | Bell icon (Lucide) + badge compteur non-lus dans `Header.tsx` |
+| 16.7 | Dropdown / panel de notifications | ✅ | Panel dropdown avec liste, marquage lu, lien vers `/notifications` |
 | 16.8 | Page complète des notifications | ✅ | `frontend/src/app/notifications/page.tsx` — Historique avec filtres par type, lu/non lu |
 
 ---
@@ -149,11 +149,11 @@
 | 17.1 | Header / Navigation | ✅ | `frontend/src/components/layout/Header.tsx` |
 | 17.2 | Footer | ✅ | `frontend/src/components/layout/Footer.tsx` |
 | 17.3 | Page « À propos » | ✅ | `frontend/src/app/about/page.tsx` — Mission, statistiques, équipe |
-| 17.4 | Page « Conditions d'utilisation » | ❌ | — |
-| 17.5 | Page « Politique de confidentialité » | ❌ | — |
-| 17.6 | Page « Mentions légales » | ❌ | — |
+| 17.4 | Page « Conditions d'utilisation » | ✅ | `frontend/src/app/terms/page.tsx` |
+| 17.5 | Page « Politique de confidentialité » | ✅ | `frontend/src/app/privacy/page.tsx` |
+| 17.6 | Page « Mentions légales » | ✅ | `frontend/src/app/legal/page.tsx` |
 | 17.7 | Page « Contact » | ✅ | `frontend/src/app/contact/page.tsx` — Formulaire + infos de contact |
-| 17.8 | Page « Centre d'aide / FAQ » | ❌ | — |
+| 17.8 | Page « Centre d'aide / FAQ » | ✅ | `frontend/src/app/help/page.tsx` — FAQ interactive avec recherche et catégories |
 | 17.9 | Page 404 personnalisée | ✅ | `frontend/src/app/not-found.tsx` — Page 404 avec liens de navigation |
 | 17.10 | Metadata SEO par page (title, description, OG) | 🟡 | Metadata de base dans layout.tsx |
 | 17.11 | Sitemap.xml dynamique | ❌ | — |
@@ -175,9 +175,9 @@
 | 18.7 | Composant Lightbox / visionneuse d'images | ❌ | Modal plein écran avec navigation |
 | 18.8 | Composant Skeleton / loading states | ✅ | `frontend/src/components/ui/skeleton.tsx` |
 | 18.9 | Composant Toast / notifications | ✅ | `frontend/src/components/ui/toast.tsx` — ToastProvider + useToast hook |
-| 18.10 | Composant Modal de confirmation | ❌ | — |
-| 18.11 | Composant Dropdown menu | ❌ | Menu utilisateur, actions |
-| 18.12 | Composant Breadcrumb | ❌ | Navigation hiérarchique |
+| 18.10 | Composant Modal de confirmation | ✅ | `frontend/src/components/ui/confirm-dialog.tsx` — AlertDialog Radix UI |
+| 18.11 | Composant Dropdown menu | ✅ | `frontend/src/components/ui/dropdown-menu.tsx` — DropdownMenu Radix UI |
+| 18.12 | Composant Breadcrumb | ✅ | `frontend/src/components/ui/breadcrumb.tsx` |
 | 18.13 | Composant Pagination | ✅ | `frontend/src/components/ui/pagination.tsx` |
 | 18.14 | Composant Rating (étoiles) | ✅ | `frontend/src/components/ui/rating.tsx` — RatingDisplay + RatingInput |
 | 18.15 | Composant Empty State | ✅ | `frontend/src/components/ui/empty-state.tsx` |
@@ -219,15 +219,15 @@
 
 | Module | Progression estimée |
 |--------|-------------------|
-| Messagerie | 40% |
-| Avis & Évaluations | 50% |
-| Recherche Globale | 55% |
+| Messagerie | 50% |
+| Avis & Évaluations | 70% |
+| Recherche Globale | 70% |
 | Tableau de Bord Utilisateur | 15% |
 | Tableau de Bord Professionnel | 15% |
 | Commandes & Paiements | 20% |
-| Notifications | 45% |
-| Pages Statiques & SEO | 40% |
-| Design System & UI | 55% |
+| Notifications | 65% |
+| Pages Statiques & SEO | 65% |
+| Design System & UI | 70% |
 | Performance & Optimisation | 25% |
 | Tests | 40% |
-| **Moyenne sections 10–20** | **~37%** |
+| **Moyenne sections 10–20** | **~46%** |
