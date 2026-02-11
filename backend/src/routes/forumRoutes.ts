@@ -14,6 +14,7 @@ router.post('/', authenticateToken, ForumController.createPost);
 router.put('/:id', authenticateToken, ForumController.updatePost);
 router.delete('/:id', authenticateToken, ForumController.deletePost);
 router.post('/:id/vote', authenticateToken, ForumController.votePost);
+router.post('/:id/report', authenticateToken, ForumController.reportPost);
 
 // Gestion des réponses
 router.post('/:postId/replies', authenticateToken, ForumController.createReply);
