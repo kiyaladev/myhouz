@@ -9,6 +9,7 @@ import forumRoutes from './forumRoutes';
 import messageRoutes from './messageRoutes';
 import orderRoutes from './orderRoutes';
 import uploadRoutes from './uploadRoutes';
+import notificationRoutes from './notificationRoutes';
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.use('/forum', forumRoutes);
 router.use('/messages', messageRoutes);
 router.use('/orders', orderRoutes);
 router.use('/uploads', uploadRoutes);
+router.use('/notifications', notificationRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {
