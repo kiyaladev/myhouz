@@ -8,6 +8,7 @@ import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface ArticleDetail {
   _id: string;
@@ -24,6 +25,15 @@ interface ArticleDetail {
   likes: number;
   status: string;
   publishedAt: string;
+  createdAt: string;
+}
+
+interface Comment {
+  _id: string;
+  content: string;
+  author: { _id: string; firstName: string; lastName: string };
+  likes: number;
+  parentComment?: string;
   createdAt: string;
 }
 
@@ -102,8 +112,13 @@ const mockRelatedArticles = [
 
 export default function ArticleDetailPage() {
   const params = useParams();
+  const { isAuthenticated, user } = useAuth();
   const [article, setArticle] = useState<ArticleDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [relatedArticles, setRelatedArticles] = useState(mockRelatedArticles);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -123,6 +138,53 @@ export default function ArticleDetailPage() {
 
     fetchArticle();
   }, [params.slug]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await api.get<Comment[]>(`/articles/${params.slug}/comments`);
+        if (response.success && response.data) {
+          setComments(response.data);
+        }
+      } catch {
+        // Comments not available
+      }
+    };
+    if (params.slug) fetchComments();
+  }, [params.slug]);
+
+  useEffect(() => {
+    const fetchRelated = async () => {
+      try {
+        const response = await api.get<ArticleDetail[]>('/articles', { category: article?.category || '', limit: '3' });
+        if (response.success && response.data && response.data.length > 0) {
+          const filtered = response.data.filter((a) => a.slug !== article?.slug).slice(0, 3);
+          if (filtered.length > 0) {
+            setRelatedArticles(filtered);
+          }
+        }
+      } catch {
+        // Keep mock data on error
+      }
+    };
+    if (article) fetchRelated();
+  }, [article]);
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const response = await api.post<Comment>(`/articles/${params.slug}/comments`, { content: newComment });
+      if (response.success && response.data) {
+        setComments(prev => [response.data!, ...prev]);
+        setNewComment('');
+      }
+    } catch {
+      // Error handling
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -275,6 +337,79 @@ export default function ArticleDetailPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Comments Section */}
+              <Card>
+                <CardContent className="p-6 md:p-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-6">
+                    Commentaires ({comments.length})
+                  </h2>
+                  
+                  {/* Comment Form */}
+                  {isAuthenticated ? (
+                    <div className="mb-8">
+                      <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Ajouter un commentaire..."
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                        rows={3}
+                      />
+                      <div className="flex justify-end mt-2">
+                        <Button
+                          onClick={handleSubmitComment}
+                          disabled={!newComment.trim() || isSubmitting}
+                          className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                          {isSubmitting ? 'Envoi...' : 'Publier'}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-8 p-4 bg-gray-50 rounded-lg text-center">
+                      <p className="text-gray-600 mb-2">Connectez-vous pour laisser un commentaire</p>
+                      <Link href="/auth/login">
+                        <Button variant="outline" size="sm">Se connecter</Button>
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Comments List */}
+                  {comments.length > 0 ? (
+                    <div className="space-y-6">
+                      {comments.map((comment) => (
+                        <div key={comment._id} className="flex gap-3">
+                          <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-emerald-700 font-bold text-xs">
+                              {comment.author.firstName.charAt(0)}{comment.author.lastName.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-sm text-gray-900">
+                                {comment.author.firstName} {comment.author.lastName}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(comment.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 text-sm">{comment.content}</p>
+                            {comment.likes > 0 && (
+                              <span className="text-xs text-gray-500 mt-1 inline-block">
+                                ❤️ {comment.likes}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-gray-400 py-4">
+                      Aucun commentaire pour le moment. Soyez le premier à commenter !
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Sidebar */}
@@ -308,7 +443,7 @@ export default function ArticleDetailPage() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Articles similaires</h3>
                   <div className="space-y-4">
-                    {mockRelatedArticles.map((related) => (
+                    {relatedArticles.map((related) => (
                       <Link key={related._id} href={`/articles/${related.slug}`} className="block group">
                         <div className="flex gap-3">
                           <img

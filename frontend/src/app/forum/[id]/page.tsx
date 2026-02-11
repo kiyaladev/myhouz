@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
+import { useAuth } from '../../../contexts/AuthContext';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
@@ -114,10 +115,16 @@ function formatDate(dateStr: string): string {
 
 export default function ForumDiscussionPage() {
   const params = useParams();
+  const { user } = useAuth();
   const [discussion, setDiscussion] = useState<DiscussionDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [replyContent, setReplyContent] = useState('');
   const [replyError, setReplyError] = useState('');
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportSubmitted, setReportSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchDiscussion = async () => {
@@ -137,6 +144,27 @@ export default function ForumDiscussionPage() {
 
     fetchDiscussion();
   }, [params.id]);
+
+  const handleReport = async () => {
+    if (!reportReason || isReporting) return;
+    setIsReporting(true);
+    try {
+      const response = await api.post(`/forum/${params.id}/report`, {
+        reason: reportReason,
+        description: reportDescription,
+      });
+      if (response.success) {
+        setReportSubmitted(true);
+        setShowReportForm(false);
+        setReportReason('');
+        setReportDescription('');
+      }
+    } catch {
+      // Error handled silently
+    } finally {
+      setIsReporting(false);
+    }
+  };
 
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,6 +288,74 @@ export default function ForumDiscussionPage() {
                       {tag}
                     </Badge>
                   ))}
+                </div>
+              )}
+
+              {/* Report Button */}
+              {user && !reportSubmitted && (
+                <div className="pt-4 border-t mt-4">
+                  <button
+                    onClick={() => setShowReportForm(!showReportForm)}
+                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z" />
+                    </svg>
+                    Signaler
+                  </button>
+                </div>
+              )}
+
+              {reportSubmitted && (
+                <div className="pt-4 border-t mt-4">
+                  <p className="text-xs text-emerald-600">✓ Signalement enregistré. Merci.</p>
+                </div>
+              )}
+
+              {/* Report Form */}
+              {showReportForm && (
+                <div className="mt-3 p-4 bg-gray-50 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Signaler ce post</h4>
+                  <div className="mb-3">
+                    <label className="block text-xs text-gray-600 mb-1">Raison *</label>
+                    <select
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                      <option value="">Sélectionner une raison</option>
+                      <option value="spam">Spam</option>
+                      <option value="inappropriate">Contenu inapproprié</option>
+                      <option value="offensive">Contenu offensant</option>
+                      <option value="other">Autre</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs text-gray-600 mb-1">Description (optionnel)</label>
+                    <textarea
+                      value={reportDescription}
+                      onChange={(e) => setReportDescription(e.target.value)}
+                      placeholder="Décrivez le problème..."
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-y"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleReport}
+                      disabled={!reportReason || isReporting}
+                      className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1.5"
+                    >
+                      {isReporting ? 'Envoi...' : 'Envoyer le signalement'}
+                    </Button>
+                    <Button
+                      onClick={() => setShowReportForm(false)}
+                      variant="outline"
+                      className="text-sm px-3 py-1.5"
+                    >
+                      Annuler
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>

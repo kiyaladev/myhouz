@@ -12,6 +12,7 @@ import uploadRoutes from './uploadRoutes';
 import notificationRoutes from './notificationRoutes';
 import searchRoutes from './searchRoutes';
 import cartRoutes from './cartRoutes';
+import quoteRoutes from './quoteRoutes';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.use('/uploads', uploadRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/search', searchRoutes);
 router.use('/cart', cartRoutes);
+router.use('/quotes', quoteRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {

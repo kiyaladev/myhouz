@@ -478,6 +478,43 @@ export class ForumController {
     }
   }
 
+  // Signaler un post
+  static async reportPost(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.userId;
+      const { reason, description } = req.body;
+
+      if (!reason) {
+        res.status(400).json({ success: false, message: 'La raison est requise' });
+        return;
+      }
+
+      const post = await ForumPost.findById(id);
+      if (!post) {
+        res.status(404).json({ success: false, message: 'Post non trouvé' });
+        return;
+      }
+
+      const alreadyReported = post.reports?.some(
+        (r: any) => r.user?.toString() === userId
+      );
+      if (alreadyReported) {
+        res.status(400).json({ success: false, message: 'Vous avez déjà signalé ce post' });
+        return;
+      }
+
+      if (!post.reports) post.reports = [];
+      post.reports.push({ user: userId as any, reason, description, createdAt: new Date() });
+      await post.save();
+
+      res.json({ success: true, message: 'Signalement enregistré' });
+    } catch (error) {
+      console.error('Erreur lors du signalement du post:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
   // Recherche dans le forum
   static async searchPosts(req: Request, res: Response): Promise<void> {
     try {

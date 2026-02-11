@@ -82,6 +82,42 @@ export default function IdeabookDetailPage() {
   const params = useParams();
   const [ideabook, setIdeabook] = useState<IdeabookDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSharePanel, setShowSharePanel] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePermission, setInvitePermission] = useState('view');
+  const [isInviting, setIsInviting] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, []);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const handleInvite = async () => {
+    if (!inviteEmail) return;
+    setIsInviting(true);
+    setInviteSuccess(false);
+    try {
+      await api.post(`/ideabooks/${params.id}/collaborators`, {
+        email: inviteEmail,
+        permission: invitePermission,
+      });
+      setInviteSuccess(true);
+      setInviteEmail('');
+      setTimeout(() => setInviteSuccess(false), 3000);
+    } catch {
+      // Invitation failed silently
+    } finally {
+      setIsInviting(false);
+    }
+  };
 
   useEffect(() => {
     const fetchIdeabook = async () => {
@@ -193,7 +229,7 @@ export default function IdeabookDetailPage() {
                       </svg>
                       Modifier
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setShowSharePanel(!showSharePanel)}>
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                       </svg>
@@ -204,6 +240,59 @@ export default function IdeabookDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Share Panel */}
+          {showSharePanel && (
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Partager cet ideabook</h3>
+
+                {/* Copy Link */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lien public</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={shareUrl}
+                      className="flex-1 p-2 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-600"
+                    />
+                    <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                      {linkCopied ? '✓ Copié' : 'Copier'}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Invite by email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Inviter par email</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="email@exemple.com"
+                      className="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    />
+                    <select
+                      value={invitePermission}
+                      onChange={(e) => setInvitePermission(e.target.value)}
+                      className="p-2 border border-gray-300 rounded-lg text-sm"
+                    >
+                      <option value="view">Lecture</option>
+                      <option value="edit">Édition</option>
+                    </select>
+                    <Button size="sm" onClick={handleInvite} disabled={!inviteEmail || isInviting}>
+                      {isInviting ? '...' : 'Inviter'}
+                    </Button>
+                  </div>
+                  {inviteSuccess && (
+                    <p className="text-sm text-green-600 mt-2">✓ Invitation envoyée !</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Items Grid */}
           <h2 className="text-xl font-semibold text-gray-900 mb-4">

@@ -21,6 +21,12 @@ export interface IForumPost extends Document {
   };
   status: 'active' | 'closed' | 'archived';
   isPinned: boolean;
+  reports: {
+    user: mongoose.Types.ObjectId;
+    reason: string;
+    description?: string;
+    createdAt: Date;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,6 +82,12 @@ const ForumPostSchema: Schema = new Schema({
     enum: ['active', 'closed', 'archived'], 
     default: 'active' 
   },
+  reports: [{
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    reason: { type: String, enum: ['spam', 'inappropriate', 'offensive', 'other'], required: true },
+    description: { type: String },
+    createdAt: { type: Date, default: Date.now }
+  }],
   isPinned: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
