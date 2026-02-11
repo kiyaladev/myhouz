@@ -44,7 +44,7 @@
 | 11.7 | Formulaire de rédaction d'avis | ✅ | `frontend/src/components/reviews/ReviewForm.tsx` — Notation + commentaire + validation |
 | 11.8 | Affichage des avis sur profils pros | ✅ | `frontend/src/components/reviews/ReviewSummary.tsx` — Résumé + distribution + page démo |
 | 11.9 | Affichage des avis sur fiches produits | ✅ | Composants réutilisables ReviewSummary + ReviewCard |
-| 11.10 | Filtrage / tri des avis | ❌ | Par note, date, pertinence |
+| 11.10 | Filtrage / tri des avis | ✅ | Par note, date, pertinence — Filtres et tri dans `reviews/page.tsx` |
 
 ---
 
@@ -64,7 +64,7 @@
 | 12.5 | Barre de recherche dans le header | ✅ | Input présent dans `Header.tsx` |
 | 12.6 | Page de résultats de recherche | ✅ | `frontend/src/app/search/page.tsx` — Résultats groupés par type avec onglets |
 | 12.7 | Autocomplétion avec dropdown | ✅ | Suggestions avec debounce lors de la saisie dans le header |
-| 12.8 | Filtres sur la page de résultats | ❌ | Affinage par type, catégorie, prix |
+| 12.8 | Filtres sur la page de résultats | ✅ | Affinage par catégorie, prix, ville — Panel de filtres dans `search/page.tsx` |
 | 12.9 | Recherche vocale (optionnel) | ❌ | — |
 
 ---
@@ -75,11 +75,11 @@
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 13.1 | Page tableau de bord principal | ✅ | `frontend/src/app/dashboard/page.tsx` — Vue d'ensemble : ideabooks, commandes, messages, activité |
-| 13.2 | Mes ideabooks | ❌ | Liste et gestion des carnets |
-| 13.3 | Mes commandes | ❌ | Historique et suivi des commandes |
-| 13.4 | Mes avis | ❌ | Avis rédigés avec possibilité d'édition |
-| 13.5 | Mes projets favoris | ❌ | Photos et projets sauvegardés |
-| 13.6 | Paramètres du compte | ❌ | E-mail, mot de passe, préférences |
+| 13.2 | Mes ideabooks | ✅ | `frontend/src/app/dashboard/ideabooks/page.tsx` — Liste et gestion des carnets |
+| 13.3 | Mes commandes | ✅ | `frontend/src/app/dashboard/orders/page.tsx` — Historique et suivi des commandes |
+| 13.4 | Mes avis | ✅ | `frontend/src/app/dashboard/reviews/page.tsx` — Avis rédigés avec édition/suppression |
+| 13.5 | Mes projets favoris | ✅ | `frontend/src/app/dashboard/favorites/page.tsx` — Photos et projets sauvegardés |
+| 13.6 | Paramètres du compte | ✅ | `frontend/src/app/dashboard/settings/page.tsx` — E-mail, mot de passe, préférences |
 | 13.7 | Notifications | ❌ | Centre de notifications |
 
 ---
@@ -156,9 +156,9 @@
 | 17.8 | Page « Centre d'aide / FAQ » | ✅ | `frontend/src/app/help/page.tsx` — FAQ interactive avec recherche et catégories |
 | 17.9 | Page 404 personnalisée | ✅ | `frontend/src/app/not-found.tsx` — Page 404 avec liens de navigation |
 | 17.10 | Metadata SEO par page (title, description, OG) | 🟡 | Metadata de base dans layout.tsx |
-| 17.11 | Sitemap.xml dynamique | ❌ | — |
+| 17.11 | Sitemap.xml dynamique | ✅ | `frontend/src/app/sitemap.ts` — Sitemap Next.js dynamique |
 | 17.12 | Fichier robots.txt | ✅ | `frontend/public/robots.txt` |
-| 17.13 | Structured data (JSON-LD) | ❌ | Pour les produits, pros, articles |
+| 17.13 | Structured data (JSON-LD) | ✅ | `frontend/src/components/seo/JsonLd.tsx` — Pour les produits, pros, articles |
 
 ---
 
@@ -170,9 +170,9 @@
 | 18.2 | Thème / palette de couleurs (emerald) | ✅ | Tailwind config |
 | 18.3 | Typographie et hiérarchie visuelle | 🟡 | À affiner pour ressembler à Houzz |
 | 18.4 | Layout responsive (mobile-first) | 🟡 | Breakpoints en place, à optimiser |
-| 18.5 | Composant Carousel / Slider | ❌ | Pour les photos et produits |
-| 18.6 | Composant Masonry Grid | ❌ | Grille Pinterest-style pour les photos |
-| 18.7 | Composant Lightbox / visionneuse d'images | ❌ | Modal plein écran avec navigation |
+| 18.5 | Composant Carousel / Slider | ✅ | `frontend/src/components/ui/carousel.tsx` — Carousel avec autoplay, flèches, dots |
+| 18.6 | Composant Masonry Grid | ✅ | `frontend/src/components/ui/masonry-grid.tsx` — Grille Pinterest-style pour les photos |
+| 18.7 | Composant Lightbox / visionneuse d'images | ✅ | `frontend/src/components/ui/lightbox.tsx` — Modal plein écran avec navigation clavier |
 | 18.8 | Composant Skeleton / loading states | ✅ | `frontend/src/components/ui/skeleton.tsx` |
 | 18.9 | Composant Toast / notifications | ✅ | `frontend/src/components/ui/toast.tsx` — ToastProvider + useToast hook |
 | 18.10 | Composant Modal de confirmation | ✅ | `frontend/src/components/ui/confirm-dialog.tsx` — AlertDialog Radix UI |
@@ -220,14 +220,14 @@
 | Module | Progression estimée |
 |--------|-------------------|
 | Messagerie | 50% |
-| Avis & Évaluations | 70% |
-| Recherche Globale | 70% |
-| Tableau de Bord Utilisateur | 15% |
+| Avis & Évaluations | 80% |
+| Recherche Globale | 80% |
+| Tableau de Bord Utilisateur | 85% |
 | Tableau de Bord Professionnel | 15% |
 | Commandes & Paiements | 20% |
 | Notifications | 65% |
-| Pages Statiques & SEO | 65% |
-| Design System & UI | 70% |
+| Pages Statiques & SEO | 80% |
+| Design System & UI | 85% |
 | Performance & Optimisation | 25% |
 | Tests | 40% |
-| **Moyenne sections 10–20** | **~46%** |
+| **Moyenne sections 10–20** | **~57%** |

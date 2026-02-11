@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { BookOpen, Plus, Lock, Globe, Trash2, ArrowLeft, Image } from 'lucide-react';
+import { BookOpen, Plus, Lock, Globe, Trash2, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 
 const mockIdeabooks = [
   {
@@ -104,7 +104,7 @@ export default function DashboardIdeabooksPage() {
                       <div>
                         <h3 className="font-semibold text-gray-900">{book.name}</h3>
                         <p className="text-sm text-gray-500 mt-1">
-                          <Image className="h-3.5 w-3.5 inline mr-1" />
+                          <ImageIcon className="h-3.5 w-3.5 inline mr-1" />
                           {book.itemCount} éléments · Modifié le {book.updatedAt}
                         </p>
                       </div>
