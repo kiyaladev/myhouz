@@ -118,6 +118,7 @@ export default function ArticleDetailPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [relatedArticles, setRelatedArticles] = useState(mockRelatedArticles);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -151,6 +152,23 @@ export default function ArticleDetailPage() {
     };
     if (params.slug) fetchComments();
   }, [params.slug]);
+
+  useEffect(() => {
+    const fetchRelated = async () => {
+      try {
+        const response = await api.get<ArticleDetail[]>('/articles', { category: article?.category || '', limit: '3' });
+        if (response.success && response.data && response.data.length > 0) {
+          const filtered = response.data.filter((a) => a.slug !== article?.slug).slice(0, 3);
+          if (filtered.length > 0) {
+            setRelatedArticles(filtered);
+          }
+        }
+      } catch {
+        // Keep mock data on error
+      }
+    };
+    if (article) fetchRelated();
+  }, [article]);
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || isSubmitting) return;
@@ -425,7 +443,7 @@ export default function ArticleDetailPage() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Articles similaires</h3>
                   <div className="space-y-4">
-                    {mockRelatedArticles.map((related) => (
+                    {relatedArticles.map((related) => (
                       <Link key={related._id} href={`/articles/${related.slug}`} className="block group">
                         <div className="flex gap-3">
                           <img
