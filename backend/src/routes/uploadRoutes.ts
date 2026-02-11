@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { authenticateToken } from '../middleware/auth';
 import { uploadSingle, uploadMultiple, handleUploadError } from '../middleware/upload';
 import { uploadFile, uploadFiles, deleteFile } from '../services/uploadService';
@@ -7,9 +8,17 @@ const router = Router();
 
 const ALLOWED_ENTITIES = ['projects', 'products', 'profiles', 'ideabooks', 'reviews', 'articles'];
 
+// Limite de débit pour les uploads : 30 requêtes par minute par IP
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { success: false, message: 'Trop de requêtes d\'upload. Réessayez plus tard.' }
+});
+
 // Upload d'une seule image
 router.post(
   '/single',
+  uploadLimiter,
   authenticateToken,
   uploadSingle,
   async (req: Request, res: Response): Promise<void> => {
@@ -43,6 +52,7 @@ router.post(
 // Upload de plusieurs images
 router.post(
   '/multiple',
+  uploadLimiter,
   authenticateToken,
   uploadMultiple,
   async (req: Request, res: Response): Promise<void> => {
@@ -77,6 +87,7 @@ router.post(
 // Supprimer un fichier
 router.delete(
   '/',
+  uploadLimiter,
   authenticateToken,
   async (req: Request, res: Response): Promise<void> => {
     try {
