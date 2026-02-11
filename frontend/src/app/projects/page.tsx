@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Layout from '../../components/layout/Layout';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -207,6 +208,7 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
               <Card key={project.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+                <Link href={`/projects/${project.id}`} aria-label={`Voir le projet : ${project.title}`}>
                 <div className="relative">
                   <img
                     src={project.images[0]}
@@ -271,6 +273,7 @@ export default function ProjectsPage() {
                     </div>
                   </div>
                 </div>
+                </Link>
               </Card>
             ))}
           </div>

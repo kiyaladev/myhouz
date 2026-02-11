@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn] = useState(false); // À remplacer par un vrai système d'auth
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navigation = [
     { name: 'Accueil', href: '/' },
@@ -61,7 +62,7 @@ export default function Header() {
             </div>
 
             {/* Boutons d'action */}
-            {isLoggedIn ? (
+            {isAuthenticated && user ? (
               <div className="flex items-center space-x-3">
                 <Link
                   href="/messages"
@@ -72,25 +73,33 @@ export default function Header() {
                   </svg>
                 </Link>
                 <Link
-                  href="/dashboard"
-                  className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                  href="/profile"
+                  className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors"
                 >
-                  Tableau de bord
+                  Mon profil
                 </Link>
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-gray-700">U</span>
-                </div>
+                <button
+                  onClick={logout}
+                  className="text-gray-700 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors"
+                >
+                  Déconnexion
+                </button>
+                <Link href="/profile" className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-emerald-700">
+                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                  </span>
+                </Link>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Connexion
                 </Link>
                 <Link
-                  href="/register"
+                  href="/auth/login?tab=register"
                   className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
                 >
                   S&apos;inscrire
@@ -127,13 +136,13 @@ export default function Header() {
                 </Link>
               ))}
               <div className="border-t border-gray-200 pt-4">
-                {isLoggedIn ? (
+                {isAuthenticated && user ? (
                   <div className="space-y-2">
                     <Link
-                      href="/dashboard"
+                      href="/profile"
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded-md"
                     >
-                      Tableau de bord
+                      Mon profil
                     </Link>
                     <Link
                       href="/messages"
@@ -141,17 +150,23 @@ export default function Header() {
                     >
                       Messages
                     </Link>
+                    <button
+                      onClick={logout}
+                      className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 rounded-md"
+                    >
+                      Déconnexion
+                    </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Link
-                      href="/login"
+                      href="/auth/login"
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-50 rounded-md"
                     >
                       Connexion
                     </Link>
                     <Link
-                      href="/register"
+                      href="/auth/login?tab=register"
                       className="block px-3 py-2 text-base font-medium bg-emerald-600 text-white hover:bg-emerald-700 rounded-md"
                     >
                       S&apos;inscrire

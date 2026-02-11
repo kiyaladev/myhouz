@@ -63,7 +63,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 2.6 | Mot de passe oublié / reset | ❌ | Endpoint + envoi e-mail |
 | 2.7 | Vérification e-mail | ❌ | Token de vérification + e-mail |
 | 2.8 | OAuth (Google, Facebook) | ❌ | Stratégie Passport.js ou équivalent |
-| 2.9 | Gestion du profil utilisateur (CRUD) | 🟡 | Lecture OK, édition à compléter |
+| 2.9 | Gestion du profil utilisateur (CRUD) | ✅ | `UserController.getProfile` + `UserController.updateProfile` |
 | 2.10 | Upload photo de profil / avatar | ❌ | — |
 | 2.11 | Refresh token / gestion des sessions | ❌ | — |
 
@@ -72,11 +72,11 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 2.12 | Page connexion / inscription | ✅ | `frontend/src/app/auth/login/page.tsx` |
 | 2.13 | Boutons OAuth (Google, Facebook) | 🟡 | UI présente, pas connecté au backend |
-| 2.14 | Contexte d'authentification (AuthContext/Provider) | ❌ | State global pour l'utilisateur connecté |
-| 2.15 | Protection des routes côté client | ❌ | Middleware Next.js ou HOC |
+| 2.14 | Contexte d'authentification (AuthContext/Provider) | ✅ | `frontend/src/contexts/AuthContext.tsx` avec JWT + localStorage |
+| 2.15 | Protection des routes côté client | ✅ | Middleware Next.js + redirect dans les composants |
 | 2.16 | Page mot de passe oublié | ❌ | — |
-| 2.17 | Page profil utilisateur | ❌ | — |
-| 2.18 | Page édition du profil | ❌ | — |
+| 2.17 | Page profil utilisateur | ✅ | `frontend/src/app/profile/page.tsx` |
+| 2.18 | Page édition du profil | ✅ | `frontend/src/app/profile/edit/page.tsx` |
 
 ---
 
@@ -118,7 +118,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 4.9 | Page liste des projets avec filtres | ✅ | `frontend/src/app/projects/page.tsx` |
 | 4.10 | Grille masonry (style Pinterest/Houzz) | ❌ | Layout en colonnes décalées |
-| 4.11 | Page détail d'un projet | ❌ | Galerie photos, description, professionnel |
+| 4.11 | Page détail d'un projet | ✅ | `frontend/src/app/projects/[id]/page.tsx` — Galerie photos, description, professionnel |
 | 4.12 | Visionneuse d'images plein écran (lightbox) | ❌ | Modal avec navigation entre images |
 | 4.13 | Bouton « Sauvegarder dans un Ideabook » | ❌ | Popup de sélection d'ideabook |
 | 4.14 | Affichage des produits tagués sur les photos | ❌ | Hotspots cliquables sur les images |
@@ -142,8 +142,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 5.7 | Page liste des professionnels | ❌ | Grille avec filtres (spécialité, ville, note) |
-| 5.8 | Page profil d'un professionnel | ❌ | Bio, portfolio, avis, coordonnées |
+| 5.7 | Page liste des professionnels | ✅ | `frontend/src/app/professionals/page.tsx` — Grille avec filtres (ville, spécialité) |
+| 5.8 | Page profil d'un professionnel | ✅ | `frontend/src/app/professionals/[id]/page.tsx` — Bio, services, infos |
 | 5.9 | Carte interactive (Google Maps / Mapbox) | ❌ | Localisation des pros sur une carte |
 | 5.10 | Formulaire de demande de devis | ❌ | Description du projet + envoi au pro |
 | 5.11 | Bouton « Contacter ce professionnel » | ❌ | Ouvre la messagerie |
@@ -481,10 +481,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Module | Progression estimée |
 |--------|-------------------|
 | Infrastructure & Configuration | 70% |
-| Authentification & Utilisateurs | 40% |
+| Authentification & Utilisateurs | 65% |
 | Page d'Accueil | 50% |
-| Galerie de Photos / Projets | 35% |
-| Annuaire des Professionnels | 15% |
+| Galerie de Photos / Projets | 45% |
+| Annuaire des Professionnels | 35% |
 | Marketplace (Produits) | 30% |
 | Ideabooks | 20% |
 | Articles & Magazine | 20% |
@@ -501,7 +501,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Performance & Optimisation | 5% |
 | Tests | 0% |
 | Déploiement & CI/CD | 0% |
-| **Total global** | **~20%** |
+| **Total global** | **~25%** |
 
 ---
 
