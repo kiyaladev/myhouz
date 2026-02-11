@@ -8,6 +8,7 @@ import articleRoutes from './articleRoutes';
 import forumRoutes from './forumRoutes';
 import messageRoutes from './messageRoutes';
 import orderRoutes from './orderRoutes';
+import uploadRoutes from './uploadRoutes';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/articles', articleRoutes);
 router.use('/forum', forumRoutes);
 router.use('/messages', messageRoutes);
 router.use('/orders', orderRoutes);
+router.use('/uploads', uploadRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {
