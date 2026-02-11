@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Article from '../models/Article';
+import ArticleComment from '../models/ArticleComment';
 import slugify from 'slugify';
 
 export class ArticleController {
@@ -357,4 +358,243 @@ export class ArticleController {
       });
     }
   }
-}
+
+  // =====================
+  // COMMENTAIRES D'ARTICLES
+  // =====================
+
+  // Obtenir les commentaires d'un article
+  static async getComments(req: Request, res: Response): Promise<void> {
+    try {
+      const { slug } = req.params;
+      const { page = 1, limit = 20 } = req.query;
+
+      // Trouver l'article par slug
+      const article = await Article.findOne({ slug });
+      if (!article) {
+        res.status(404).json({
+          success: false,
+          message: 'Article non trouvé'
+        });
+        return;
+      }
+
+      const skip = (Number(page) - 1) * Number(limit);
+
+      // Récupérer les commentaires parents (sans parentComment)
+      const comments = await ArticleComment.find({
+        article: article._id,
+        parentComment: { $exists: false },
+        isModerated: false
+      })
+        .populate('author', 'firstName lastName profileImage')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .lean();
+
+      // Pour chaque commentaire parent, récupérer les réponses
+      const commentsWithReplies = await Promise.all(
+        comments.map(async (comment) => {
+          const replies = await ArticleComment.find({
+            parentComment: comment._id,
+            isModerated: false
+          })
+            .populate('author', 'firstName lastName profileImage')
+            .sort({ createdAt: 1 })
+            .lean();
+          return { ...comment, replies };
+        })
+      );
+
+      const total = await ArticleComment.countDocuments({
+        article: article._id,
+        parentComment: { $exists: false },
+        isModerated: false
+      });
+
+      res.json({
+        success: true,
+        data: commentsWithReplies,
+        pagination: {
+          page: Number(page),
+          limit: Number(limit),
+          total,
+          pages: Math.ceil(total / Number(limit))
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des commentaires:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Ajouter un commentaire
+  static async addComment(req: Request, res: Response): Promise<void> {
+    try {
+      const { slug } = req.params;
+      const { content, parentCommentId } = req.body;
+
+      // Trouver l'article par slug
+      const article = await Article.findOne({ slug });
+      if (!article) {
+        res.status(404).json({
+          success: false,
+          message: 'Article non trouvé'
+        });
+        return;
+      }
+
+      // Vérifier le commentaire parent s'il existe
+      if (parentCommentId) {
+        const parentComment = await ArticleComment.findById(parentCommentId);
+        if (!parentComment || parentComment.article.toString() !== (article._id as string).toString()) {
+          res.status(400).json({
+            success: false,
+            message: 'Commentaire parent invalide'
+          });
+          return;
+        }
+      }
+
+      const comment = new ArticleComment({
+        article: article._id,
+        author: req.user?.userId,
+        content,
+        parentComment: parentCommentId || undefined
+      });
+
+      await comment.save();
+      await comment.populate('author', 'firstName lastName profileImage');
+
+      res.status(201).json({
+        success: true,
+        message: 'Commentaire ajouté avec succès',
+        data: comment
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du commentaire:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Mettre à jour un commentaire
+  static async updateComment(req: Request, res: Response): Promise<void> {
+    try {
+      const { commentId } = req.params;
+      const { content } = req.body;
+
+      const comment = await ArticleComment.findById(commentId);
+
+      if (!comment) {
+        res.status(404).json({
+          success: false,
+          message: 'Commentaire non trouvé'
+        });
+        return;
+      }
+
+      // Vérifier que l'utilisateur est l'auteur
+      if (comment.author.toString() !== req.user?.userId) {
+        res.status(403).json({
+          success: false,
+          message: 'Accès non autorisé'
+        });
+        return;
+      }
+
+      comment.content = content;
+      comment.isEdited = true;
+      await comment.save();
+      await comment.populate('author', 'firstName lastName profileImage');
+
+      res.json({
+        success: true,
+        message: 'Commentaire mis à jour avec succès',
+        data: comment
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du commentaire:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Supprimer un commentaire
+  static async deleteComment(req: Request, res: Response): Promise<void> {
+    try {
+      const { commentId } = req.params;
+
+      const comment = await ArticleComment.findById(commentId);
+
+      if (!comment) {
+        res.status(404).json({
+          success: false,
+          message: 'Commentaire non trouvé'
+        });
+        return;
+      }
+
+      // Vérifier que l'utilisateur est l'auteur
+      if (comment.author.toString() !== req.user?.userId) {
+        res.status(403).json({
+          success: false,
+          message: 'Accès non autorisé'
+        });
+        return;
+      }
+
+      // Supprimer aussi les réponses à ce commentaire
+      await ArticleComment.deleteMany({ parentComment: commentId });
+      await ArticleComment.findByIdAndDelete(commentId);
+
+      res.json({
+        success: true,
+        message: 'Commentaire supprimé avec succès'
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression du commentaire:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Liker un commentaire
+  static async likeComment(req: Request, res: Response): Promise<void> {
+    try {
+      const { commentId } = req.params;
+
+      const comment = await ArticleComment.findById(commentId);
+
+      if (!comment) {
+        res.status(404).json({
+          success: false,
+          message: 'Commentaire non trouvé'
+        });
+        return;
+      }
+
+      await ArticleComment.findByIdAndUpdate(commentId, { $inc: { likes: 1 } });
+
+      res.json({
+        success: true,
+        message: 'Like ajouté'
+      });
+    } catch (error) {
+      console.error('Erreur lors du like:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }}

@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
-import { Bell, Search, FolderOpen, ShoppingBag, Users, MessageCircle, X } from 'lucide-react';
+import { useCart } from '../../contexts/CartContext';
+import { Bell, Search, FolderOpen, ShoppingBag, ShoppingCart, Users, MessageCircle, X } from 'lucide-react';
 
 // Mock notifications for demo (will be replaced by API calls)
 const mockNotifications = [
@@ -40,6 +41,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const { itemCount, openCart } = useCart();
   const router = useRouter();
 
   // Notification state
@@ -224,6 +226,19 @@ export default function Header() {
             {/* Boutons d'action */}
             {isAuthenticated && user ? (
               <div className="flex items-center space-x-3">
+                {/* Cart */}
+                <button
+                  onClick={openCart}
+                  className="relative text-gray-700 hover:text-emerald-600 p-2 rounded-lg transition-colors"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {itemCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-emerald-500 rounded-full">
+                      {itemCount > 9 ? '9+' : itemCount}
+                    </span>
+                  )}
+                </button>
+
                 {/* Messages */}
                 <Link
                   href="/messages"

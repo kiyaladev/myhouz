@@ -61,7 +61,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 2.4 | Middleware d'authentification | ✅ | `backend/src/middleware/auth.ts` |
 | 2.5 | Middleware rôle (particulier / professionnel) | ✅ | `requireProfessional`, `requireParticulier` |
 | 2.6 | Mot de passe oublié / reset | ✅ | `UserController.forgotPassword` + `UserController.resetPassword` avec token sécurisé |
-| 2.7 | Vérification e-mail | ❌ | Token de vérification + e-mail |
+| 2.7 | Vérification e-mail | ✅ | `UserController.verifyEmail` + `UserController.resendVerificationEmail` + envoi email auto à l'inscription |
 | 2.8 | OAuth (Google, Facebook) | ❌ | Stratégie Passport.js ou équivalent |
 | 2.9 | Gestion du profil utilisateur (CRUD) | ✅ | `UserController.getProfile` + `UserController.updateProfile` |
 | 2.10 | Upload photo de profil / avatar | ✅ | `UserController.uploadAvatar` + route `POST /users/profile/avatar` |
@@ -77,6 +77,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 2.16 | Page mot de passe oublié | ✅ | `frontend/src/app/auth/forgot-password/page.tsx` + `frontend/src/app/auth/reset-password/page.tsx` |
 | 2.17 | Page profil utilisateur | ✅ | `frontend/src/app/profile/page.tsx` |
 | 2.18 | Page édition du profil | ✅ | `frontend/src/app/profile/edit/page.tsx` |
+| 2.19 | Page vérification email | ✅ | `frontend/src/app/auth/verify-email/page.tsx` |
 
 ---
 
@@ -119,8 +120,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 4.9 | Page liste des projets avec filtres | ✅ | `frontend/src/app/projects/page.tsx` |
 | 4.10 | Grille masonry (style Pinterest/Houzz) | ✅ | CSS columns layout dans `projects/page.tsx` |
 | 4.11 | Page détail d'un projet | ✅ | `frontend/src/app/projects/[id]/page.tsx` — Galerie photos, description, professionnel |
-| 4.12 | Visionneuse d'images plein écran (lightbox) | ❌ | Modal avec navigation entre images |
-| 4.13 | Bouton « Sauvegarder dans un Ideabook » | ❌ | Popup de sélection d'ideabook |
+| 4.12 | Visionneuse d'images plein écran (lightbox) | ✅ | `frontend/src/components/ui/lightbox.tsx` — Modal avec navigation, zoom, raccourcis clavier |
+| 4.13 | Bouton « Sauvegarder dans un Ideabook » | ✅ | Intégré dans `projects/[id]/page.tsx` avec `SaveToIdeabookModal` |
 | 4.14 | Affichage des produits tagués sur les photos | ❌ | Hotspots cliquables sur les images |
 | 4.15 | Scroll infini ou pagination | ✅ | Pagination fonctionnelle avec numéros de page + appels API |
 | 4.16 | Connexion au backend API | ✅ | `api.get('/projects')` avec fallback mock data |
@@ -146,7 +147,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 5.8 | Page profil d'un professionnel | ✅ | `frontend/src/app/professionals/[id]/page.tsx` — Bio, services, infos |
 | 5.9 | Carte interactive (Google Maps / Mapbox) | ❌ | Localisation des pros sur une carte |
 | 5.10 | Formulaire de demande de devis | ❌ | Description du projet + envoi au pro |
-| 5.11 | Bouton « Contacter ce professionnel » | ❌ | Ouvre la messagerie |
+| 5.11 | Bouton « Contacter ce professionnel » | ✅ | Bouton dans `projects/[id]/page.tsx` redirige vers messagerie |
 | 5.12 | Galerie des projets du professionnel | ✅ | Section portfolio dans `professionals/[id]/page.tsx` avec appel API `projects/professional/:id` |
 
 ---
@@ -160,7 +161,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 6.2 | CRUD produits | ✅ | `ProductController` |
 | 6.3 | Recherche full-text | 🟡 | Index text dans le modèle |
 | 6.4 | Filtrage par catégorie / prix / marque | ✅ | Query params dans le controller |
-| 6.5 | Gestion du panier | ❌ | Endpoint ou session côté client |
+| 6.5 | Gestion du panier | ✅ | `backend/src/models/Cart.ts` + `CartController` avec routes `/cart` |
 | 6.6 | Gestion des variantes (taille, couleur) | ❌ | — |
 | 6.7 | Gestion de l'inventaire / stock | 🟡 | Champ `inventory` dans le modèle |
 | 6.8 | Wishlist / liste de souhaits | ❌ | — |
@@ -170,12 +171,13 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 6.9 | Page liste des produits avec filtres | ✅ | `frontend/src/app/products/page.tsx` |
 | 6.10 | Page détail d'un produit | ✅ | `frontend/src/app/products/[id]/page.tsx` — Galerie, prix, spécifications, vendeur |
-| 6.11 | Galerie d'images produit (zoom, slider) | ❌ | Carrousel avec zoom au survol |
-| 6.12 | Composant panier (sidebar/drawer) | ❌ | — |
-| 6.13 | Page panier récapitulatif | ❌ | Liste des articles, quantités, total |
+| 6.11 | Galerie d'images produit (zoom, slider) | ✅ | Lightbox intégré dans `products/[id]/page.tsx` avec zoom et navigation |
+| 6.12 | Composant panier (sidebar/drawer) | ✅ | `frontend/src/components/cart/CartSidebar.tsx` — Sidebar avec gestion quantités |
+| 6.13 | Page panier récapitulatif | 🟡 | Sidebar fonctionnel, page dédiée à faire |
 | 6.14 | Système de filtres avancés (sidebar) | ❌ | Filtres à facettes style Houzz |
 | 6.15 | Connexion au backend API | ✅ | `api.get('/products')` avec fallback mock data + pagination |
 | 6.16 | Suggestions de produits similaires | ❌ | Section « Vous aimerez aussi » |
+| 6.17 | Contexte panier global | ✅ | `frontend/src/contexts/CartContext.tsx` avec badge dans header |
 
 ---
 
@@ -211,7 +213,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 8.1 | Modèle Article | ✅ | `backend/src/models/Article.ts` |
 | 8.2 | CRUD articles | ✅ | `ArticleController` |
 | 8.3 | Catégorisation des articles | ✅ | Champ catégorie enum dans le modèle (conseils/tendances/guides/interviews/actualites/diy) |
-| 8.4 | Système de commentaires sur articles | ❌ | — |
+| 8.4 | Système de commentaires sur articles | ✅ | `backend/src/models/ArticleComment.ts` + `ArticleController.getComments/addComment/updateComment/deleteComment/likeComment` |
 | 8.5 | Articles liés / suggestions | ❌ | — |
 
 ### Frontend
@@ -220,7 +222,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 8.6 | Page liste des articles (blog/magazine) | ✅ | `frontend/src/app/articles/page.tsx` — Featured article, grille, filtres catégorie |
 | 8.7 | Page détail d'un article | ✅ | `frontend/src/app/articles/[slug]/page.tsx` — Contenu, auteur, articles liés, partage |
 | 8.8 | Filtrage par catégorie / tag | ✅ | Boutons catégorie dans `articles/page.tsx` + filtre API |
-| 8.9 | Section commentaires | ❌ | — |
+| 8.9 | Section commentaires | 🟡 | Backend API disponible, UI frontend à implémenter |
 | 8.10 | Partage sur les réseaux sociaux | ✅ | Boutons Twitter, Facebook, Copier le lien dans `articles/[slug]/page.tsx` |
 | 8.11 | Composant éditeur de contenu riche (admin) | ❌ | WYSIWYG pour rédiger les articles |
 
@@ -418,14 +420,14 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 18.4 | Layout responsive (mobile-first) | 🟡 | Breakpoints en place, à optimiser |
 | 18.5 | Composant Carousel / Slider | ❌ | Pour les photos et produits |
 | 18.6 | Composant Masonry Grid | ❌ | Grille Pinterest-style pour les photos |
-| 18.7 | Composant Lightbox / visionneuse d'images | ❌ | Modal plein écran avec navigation |
+| 18.7 | Composant Lightbox / visionneuse d'images | ✅ | `frontend/src/components/ui/lightbox.tsx` — Modal plein écran avec navigation, zoom, raccourcis clavier |
 | 18.8 | Composant Skeleton / loading states | ✅ | `frontend/src/components/ui/skeleton.tsx` |
-| 18.9 | Composant Toast / notifications | ❌ | Messages de feedback utilisateur |
-| 18.10 | Composant Modal de confirmation | ❌ | — |
-| 18.11 | Composant Dropdown menu | ❌ | Menu utilisateur, actions |
+| 18.9 | Composant Toast / notifications | ✅ | `frontend/src/components/ui/toast.tsx` |
+| 18.10 | Composant Modal de confirmation | ✅ | `frontend/src/components/ui/confirm-dialog.tsx` |
+| 18.11 | Composant Dropdown menu | ✅ | `frontend/src/components/ui/dropdown-menu.tsx` |
 | 18.12 | Composant Breadcrumb | ✅ | `frontend/src/components/ui/breadcrumb.tsx` — Navigation hiérarchique |
 | 18.13 | Composant Pagination | ✅ | `frontend/src/components/ui/pagination.tsx` — Composant réutilisable |
-| 18.14 | Composant Rating (étoiles) | 🟡 | SVG inline, à extraire en composant |
+| 18.14 | Composant Rating (étoiles) | ✅ | `frontend/src/components/ui/rating.tsx` — RatingDisplay + RatingInput |
 | 18.15 | Composant Empty State | ✅ | `frontend/src/components/ui/empty-state.tsx` — Titre, description, action |
 | 18.16 | Animations et transitions | 🟡 | Hover effects basiques, à enrichir |
 | 18.17 | Mode sombre (optionnel) | ❌ | — |
@@ -481,13 +483,13 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Module | Progression estimée |
 |--------|-------------------|
 | Infrastructure & Configuration | 90% |
-| Authentification & Utilisateurs | 80% |
+| Authentification & Utilisateurs | 90% |
 | Page d'Accueil | 75% |
-| Galerie de Photos / Projets | 70% |
-| Annuaire des Professionnels | 55% |
-| Marketplace (Produits) | 50% |
+| Galerie de Photos / Projets | 85% |
+| Annuaire des Professionnels | 65% |
+| Marketplace (Produits) | 70% |
 | Ideabooks | 60% |
-| Articles & Magazine | 65% |
+| Articles & Magazine | 75% |
 | Forum / Discussions | 80% |
 | Messagerie | 20% |
 | Avis & Évaluations | 15% |
@@ -497,11 +499,11 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Commandes & Paiements | 15% |
 | Notifications | 0% |
 | Pages Statiques & SEO | 45% |
-| Design System & UI | 55% |
+| Design System & UI | 75% |
 | Performance & Optimisation | 5% |
 | Tests | 0% |
 | Déploiement & CI/CD | 0% |
-| **Total global** | **~40%** |
+| **Total global** | **~50%** |
 
 ---
 

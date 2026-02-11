@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models';
+import { sendEmail } from '../config/email';
 
 export class UserController {
   // Inscription
@@ -35,7 +36,33 @@ export class UserController {
       };
 
       const user = new User(userData);
+      
+      // Générer un token de vérification d'email
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+      user.emailVerificationToken = hashedVerificationToken;
+      user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+      
       await user.save();
+
+      // Envoyer l'email de vérification
+      const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify-email?token=${verificationToken}`;
+      try {
+        await sendEmail(
+          user.email,
+          'Vérification de votre adresse email - MyHouz',
+          `
+          <h1>Bienvenue sur MyHouz, ${user.firstName} !</h1>
+          <p>Merci de vous être inscrit. Veuillez cliquer sur le lien ci-dessous pour vérifier votre adresse email :</p>
+          <a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; background-color: #10B981; color: white; text-decoration: none; border-radius: 8px;">Vérifier mon email</a>
+          <p>Ce lien expire dans 24 heures.</p>
+          <p>Si vous n'avez pas créé de compte, veuillez ignorer cet email.</p>
+          `
+        );
+      } catch (emailError) {
+        console.error('Erreur lors de l\'envoi de l\'email de vérification:', emailError);
+        // On continue malgré l'erreur d'envoi d'email
+      }
 
       // Générer un token JWT
       const token = jwt.sign(
@@ -46,7 +73,7 @@ export class UserController {
 
       res.status(201).json({
         success: true,
-        message: 'Utilisateur créé avec succès',
+        message: 'Utilisateur créé avec succès. Un email de vérification a été envoyé.',
         token,
         data: {
           id: user._id,
@@ -54,7 +81,8 @@ export class UserController {
           lastName: user.lastName,
           email: user.email,
           userType: user.userType,
-          profileImage: user.profileImage
+          profileImage: user.profileImage,
+          emailVerified: user.emailVerified
         }
       });
     } catch (error) {
@@ -416,6 +444,113 @@ export class UserController {
       });
     } catch (error) {
       console.error('Erreur lors de l\'upload de l\'avatar:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Vérifier l'email
+  static async verifyEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        res.status(400).json({
+          success: false,
+          message: 'Token de vérification requis'
+        });
+        return;
+      }
+
+      const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+      const user = await User.findOne({
+        emailVerificationToken: hashedToken,
+        emailVerificationExpires: { $gt: new Date() }
+      });
+
+      if (!user) {
+        res.status(400).json({
+          success: false,
+          message: 'Token invalide ou expiré'
+        });
+        return;
+      }
+
+      user.emailVerified = true;
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save();
+
+      res.json({
+        success: true,
+        message: 'Email vérifié avec succès'
+      });
+    } catch (error) {
+      console.error('Erreur lors de la vérification de l\'email:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Renvoyer l'email de vérification
+  static async resendVerificationEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        // Ne pas révéler si l'utilisateur existe ou non
+        res.json({
+          success: true,
+          message: 'Si un compte existe avec cet email et n\'est pas vérifié, un email a été envoyé'
+        });
+        return;
+      }
+
+      if (user.emailVerified) {
+        res.status(400).json({
+          success: false,
+          message: 'Cet email est déjà vérifié'
+        });
+        return;
+      }
+
+      // Générer un nouveau token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+      user.emailVerificationToken = hashedVerificationToken;
+      user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+      await user.save();
+
+      // Envoyer l'email
+      const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/verify-email?token=${verificationToken}`;
+      try {
+        await sendEmail(
+          user.email,
+          'Vérification de votre adresse email - MyHouz',
+          `
+          <h1>Vérification de votre email</h1>
+          <p>Vous avez demandé un nouveau lien de vérification. Cliquez ci-dessous pour vérifier votre adresse email :</p>
+          <a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; background-color: #10B981; color: white; text-decoration: none; border-radius: 8px;">Vérifier mon email</a>
+          <p>Ce lien expire dans 24 heures.</p>
+          `
+        );
+      } catch (emailError) {
+        console.error('Erreur lors de l\'envoi de l\'email:', emailError);
+      }
+
+      res.json({
+        success: true,
+        message: 'Si un compte existe avec cet email et n\'est pas vérifié, un email a été envoyé'
+      });
+    } catch (error) {
+      console.error('Erreur lors du renvoi de l\'email de vérification:', error);
       res.status(500).json({
         success: false,
         message: 'Erreur interne du serveur'

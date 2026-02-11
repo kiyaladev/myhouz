@@ -1,13 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Bookmark, ShoppingCart, Expand } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
+import Lightbox from '../../../components/ui/lightbox';
+import SaveToIdeabookModal from '../../../components/SaveToIdeabookModal';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useCart } from '../../../contexts/CartContext';
 
 interface ProductDetail {
   _id: string;
@@ -69,9 +74,15 @@ const specLabels: Record<string, string> = {
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const { addToCart, isLoading: isCartLoading } = useCart();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -90,6 +101,26 @@ export default function ProductDetailPage() {
 
     fetchProduct();
   }, [params.id]);
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    const success = await addToCart(params.id as string);
+    if (success) {
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    }
+  };
+
+  const handleSaveToIdeabook = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    setIsSaveModalOpen(true);
+  };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -137,6 +168,22 @@ export default function ProductDetailPage() {
   return (
     <Layout>
       <div className="bg-gray-50 min-h-screen">
+        {/* Lightbox */}
+        <Lightbox
+          images={product.images}
+          initialIndex={selectedImage}
+          isOpen={isLightboxOpen}
+          onClose={() => setIsLightboxOpen(false)}
+        />
+
+        {/* Save to Ideabook Modal */}
+        <SaveToIdeabookModal
+          isOpen={isSaveModalOpen}
+          onClose={() => setIsSaveModalOpen(false)}
+          itemType="product"
+          itemId={product._id}
+        />
+
         {/* Breadcrumb */}
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -156,12 +203,30 @@ export default function ProductDetailPage() {
             <div className="lg:col-span-2">
               {/* Image Gallery */}
               <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-                <div className="relative">
+                <div className="relative group">
                   <img
                     src={product.images[selectedImage]?.url || product.images[0]?.url}
                     alt={product.images[selectedImage]?.caption || product.name}
-                    className="w-full h-96 object-cover"
+                    className="w-full h-96 object-cover cursor-pointer"
+                    onClick={() => setIsLightboxOpen(true)}
                   />
+                  {/* Image overlay actions */}
+                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setIsLightboxOpen(true)}
+                      className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                      title="Plein écran"
+                    >
+                      <Expand className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={handleSaveToIdeabook}
+                      className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                      title="Sauvegarder"
+                    >
+                      <Bookmark className="w-5 h-5" />
+                    </button>
+                  </div>
                   {product.images.length > 1 && (
                     <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
                       {selectedImage + 1} / {product.images.length}
@@ -297,10 +362,20 @@ export default function ProductDetailPage() {
                   ) : (
                     <p className="text-sm text-red-600 mb-4">Rupture de stock</p>
                   )}
-                  <Button className="w-full mb-2" disabled={product.inventory.quantity === 0}>
-                    Ajouter au panier
+                  <Button 
+                    className={`w-full mb-2 ${addedToCart ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                    disabled={product.inventory.quantity === 0 || isCartLoading}
+                    onClick={handleAddToCart}
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    {addedToCart ? 'Ajouté au panier ✓' : 'Ajouter au panier'}
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={handleSaveToIdeabook}
+                  >
+                    <Bookmark className="w-4 h-4 mr-2" />
                     Ajouter aux favoris
                   </Button>
                 </CardContent>
