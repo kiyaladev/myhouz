@@ -35,6 +35,20 @@ interface ProductDetail {
   createdAt: string;
 }
 
+interface SimilarProduct {
+  _id: string;
+  name: string;
+  price: { amount: number; currency: string };
+  images: Array<{ url: string; caption?: string }>;
+  rating: { average: number; totalReviews: number };
+}
+
+const mockSimilarProducts: SimilarProduct[] = [
+  { _id: 's1', name: 'Canapé d\'angle en tissu gris', price: { amount: 1299, currency: 'EUR' }, images: [{ url: 'https://images.unsplash.com/photo-1550254478-ead40cc54513?w=400&h=300&fit=crop' }], rating: { average: 4.3, totalReviews: 67 } },
+  { _id: 's2', name: 'Fauteuil scandinave en velours', price: { amount: 449, currency: 'EUR' }, images: [{ url: 'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=400&h=300&fit=crop' }], rating: { average: 4.6, totalReviews: 89 } },
+  { _id: 's3', name: 'Pouf rond en velours émeraude', price: { amount: 179, currency: 'EUR' }, images: [{ url: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=400&h=300&fit=crop' }], rating: { average: 4.4, totalReviews: 34 } },
+];
+
 // Mock data for when API is unavailable
 const mockProduct: ProductDetail = {
   _id: '1',
@@ -83,6 +97,7 @@ export default function ProductDetailPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [similarProducts, setSimilarProducts] = useState<SimilarProduct[]>([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -101,6 +116,22 @@ export default function ProductDetailPage() {
 
     fetchProduct();
   }, [params.id]);
+
+  useEffect(() => {
+    const fetchSimilar = async () => {
+      try {
+        const response = await api.get<SimilarProduct[]>('/products', { category: product?.category || '', limit: '3' });
+        if (response.success && response.data && response.data.length > 0) {
+          setSimilarProducts(response.data.filter(p => p._id !== product?._id).slice(0, 3));
+        } else {
+          setSimilarProducts(mockSimilarProducts);
+        }
+      } catch {
+        setSimilarProducts(mockSimilarProducts);
+      }
+    };
+    if (product) fetchSimilar();
+  }, [product]);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -325,15 +356,30 @@ export default function ProductDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Similar Products Placeholder */}
+              {/* Similar Products */}
               <Card>
                 <CardContent className="p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Produits similaires</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
-                        <span className="text-gray-400 text-sm">Produit {i}</span>
-                      </div>
+                    {similarProducts.map((p) => (
+                      <Link key={p._id} href={`/products/${p._id}`} className="group">
+                        <div className="rounded-lg overflow-hidden border hover:shadow-md transition-shadow">
+                          <img
+                            src={p.images[0]?.url || 'https://via.placeholder.com/400x300'}
+                            alt={p.name}
+                            className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="p-3">
+                            <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition-colors">{p.name}</h3>
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="text-yellow-400 text-xs">⭐</span>
+                              <span className="text-xs text-gray-600">{p.rating.average.toFixed(1)}</span>
+                              <span className="text-xs text-gray-400">({p.rating.totalReviews})</span>
+                            </div>
+                            <p className="text-sm font-bold text-emerald-600 mt-1">{p.price.amount.toLocaleString('fr-FR')} €</p>
+                          </div>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 </CardContent>
