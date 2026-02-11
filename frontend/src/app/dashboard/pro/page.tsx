@@ -142,7 +142,7 @@ export default function ProDashboardPage() {
                   <FolderOpen className="h-5 w-5 text-emerald-600" />
                   Mes Projets
                 </CardTitle>
-                <Link href="/projects" className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
+                <Link href="/dashboard/pro/projects" className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
                   Voir tout <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -214,13 +214,13 @@ export default function ProDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
-                <Link href="/projects/new">
+                <Link href="/dashboard/pro/projects">
                   <Button className="bg-emerald-600 hover:bg-emerald-700">
                     <Plus className="h-4 w-4 mr-2" />
                     Ajouter un projet
                   </Button>
                 </Link>
-                <Link href="/products">
+                <Link href="/dashboard/pro/products">
                   <Button variant="outline">
                     <Package className="h-4 w-4 mr-2" />
                     Gérer mes produits
@@ -230,6 +230,12 @@ export default function ProDashboardPage() {
                   <Button variant="outline">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Voir mes avis
+                  </Button>
+                </Link>
+                <Link href="/dashboard/pro/settings">
+                  <Button variant="outline">
+                    <Star className="h-4 w-4 mr-2" />
+                    Profil professionnel
                   </Button>
                 </Link>
               </div>

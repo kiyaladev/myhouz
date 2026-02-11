@@ -28,6 +28,12 @@ export interface IReview extends Document {
     text: string;
     respondedAt: Date;
   };
+  reports: {
+    user: mongoose.Types.ObjectId;
+    reason: string;
+    createdAt: Date;
+  }[];
+  reportCount: number;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
   updatedAt: Date;
@@ -73,6 +79,12 @@ const ReviewSchema: Schema = new Schema({
     text: String,
     respondedAt: Date
   },
+  reports: [{
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    reason: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+  }],
+  reportCount: { type: Number, default: 0 },
   status: { 
     type: String, 
     enum: ['pending', 'approved', 'rejected'], 

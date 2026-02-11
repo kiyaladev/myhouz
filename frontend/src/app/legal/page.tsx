@@ -1,6 +1,12 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Layout from '../../components/layout/Layout';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Mentions légales - MyHouz',
+  description: 'Mentions légales de la plateforme MyHouz — informations sur l\'éditeur et l\'hébergeur.',
+};
 
 export default function LegalPage() {
   return (

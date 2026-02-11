@@ -14,5 +14,6 @@ router.put('/:id', authenticateToken, ReviewController.updateReview);
 router.delete('/:id', authenticateToken, ReviewController.deleteReview);
 router.post('/:id/helpful', authenticateToken, ReviewController.markHelpful);
 router.post('/:id/response', authenticateToken, ReviewController.addResponse);
+router.post('/:id/report', authenticateToken, ReviewController.reportReview);
 
 export default router;

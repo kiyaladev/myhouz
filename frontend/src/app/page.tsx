@@ -1,9 +1,20 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Layout from '../components/layout/Layout';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'MyHouz - Inspiration, Professionnels & Produits pour votre Maison',
+  description: 'Trouvez l\'inspiration, des professionnels qualifiés et des produits de qualité pour la rénovation et la décoration de votre maison.',
+  openGraph: {
+    title: 'MyHouz - Plateforme de Rénovation et Décoration',
+    description: 'Trouvez l\'inspiration, des professionnels qualifiés et des produits de qualité pour votre maison.',
+    type: 'website',
+  },
+};
 
 export default function HomePage() {
   const featuredCategories = [
