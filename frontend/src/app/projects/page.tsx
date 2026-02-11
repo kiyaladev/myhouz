@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Layout from '../../components/layout/Layout';
 import { Card } from '../../components/ui/card';
@@ -9,9 +9,11 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Badge } from '../../components/ui/badge';
+import { api } from '../../lib/api';
 
 interface Project {
   id: string;
+  _id?: string;
   title: string;
   description: string;
   images: string[];
@@ -27,6 +29,57 @@ interface Project {
   views: number;
 }
 
+const mockProjects: Project[] = [
+  {
+    id: '1',
+    title: 'Cuisine moderne avec îlot central',
+    description: 'Rénovation complète d\'une cuisine avec des matériaux contemporains et un design épuré.',
+    images: ['https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop'],
+    category: 'renovation',
+    room: 'cuisine',
+    style: ['moderne', 'contemporain'],
+    professional: {
+      name: 'Sophie Dubois',
+      avatar: '',
+      location: 'Paris, France'
+    },
+    likes: 124,
+    views: 1250
+  },
+  {
+    id: '2',
+    title: 'Salon scandinave chaleureux',
+    description: 'Aménagement d\'un salon dans un style scandinave avec des tons neutres et du bois naturel.',
+    images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop'],
+    category: 'decoration',
+    room: 'salon',
+    style: ['scandinave', 'cosy'],
+    professional: {
+      name: 'Marie Larsson',
+      avatar: '',
+      location: 'Lyon, France'
+    },
+    likes: 89,
+    views: 890
+  },
+  {
+    id: '3',
+    title: 'Salle de bain industrielle',
+    description: 'Transformation d\'une salle de bain avec des éléments industriels et des matériaux bruts.',
+    images: ['https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=400&h=300&fit=crop'],
+    category: 'renovation',
+    room: 'salle-de-bain',
+    style: ['industriel', 'loft'],
+    professional: {
+      name: 'Pierre Martin',
+      avatar: '',
+      location: 'Marseille, France'
+    },
+    likes: 67,
+    views: 634
+  }
+];
+
 export default function ProjectsPage() {
   const [filters, setFilters] = useState({
     category: 'all',
@@ -34,58 +87,51 @@ export default function ProjectsPage() {
     style: 'all',
     search: ''
   });
+  const [sort, setSort] = useState('popular');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data - à remplacer par des appels API
-  const projects: Project[] = [
-    {
-      id: '1',
-      title: 'Cuisine moderne avec îlot central',
-      description: 'Rénovation complète d\'une cuisine avec des matériaux contemporains et un design épuré.',
-      images: ['https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop'],
-      category: 'renovation',
-      room: 'cuisine',
-      style: ['moderne', 'contemporain'],
-      professional: {
-        name: 'Sophie Dubois',
-        avatar: '',
-        location: 'Paris, France'
-      },
-      likes: 124,
-      views: 1250
-    },
-    {
-      id: '2',
-      title: 'Salon scandinave chaleureux',
-      description: 'Aménagement d\'un salon dans un style scandinave avec des tons neutres et du bois naturel.',
-      images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop'],
-      category: 'decoration',
-      room: 'salon',
-      style: ['scandinave', 'cosy'],
-      professional: {
-        name: 'Marie Larsson',
-        avatar: '',
-        location: 'Lyon, France'
-      },
-      likes: 89,
-      views: 890
-    },
-    {
-      id: '3',
-      title: 'Salle de bain industrielle',
-      description: 'Transformation d\'une salle de bain avec des éléments industriels et des matériaux bruts.',
-      images: ['https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=400&h=300&fit=crop'],
-      category: 'renovation',
-      room: 'salle-de-bain',
-      style: ['industriel', 'loft'],
-      professional: {
-        name: 'Pierre Martin',
-        avatar: '',
-        location: 'Marseille, France'
-      },
-      likes: 67,
-      views: 634
+  const fetchProjects = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params: Record<string, string> = { page: String(page), limit: '12', sort };
+      if (filters.category !== 'all') params.category = filters.category;
+      if (filters.room !== 'all') params.room = filters.room;
+      if (filters.style !== 'all') params.style = filters.style;
+      if (filters.search) params.search = filters.search;
+
+      const res = await api.get<Project[]>('/projects', params);
+      if (res.success && res.data) {
+        setProjects(res.data.map(p => ({ ...p, id: p.id || p._id || '' })));
+        if (res.pagination) {
+          setTotalPages(res.pagination.pages);
+        }
+      }
+    } catch {
+      setProjects(mockProjects);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
     }
-  ];
+  }, [page, sort, filters]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  const getPageNumbers = (current: number, total: number): (number | 'ellipsis')[] => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | 'ellipsis')[] = [1];
+    if (current > 3) pages.push('ellipsis');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i);
+    }
+    if (current < total - 2) pages.push('ellipsis');
+    pages.push(total);
+    return pages;
+  };
 
   const categories = [
     { value: 'all', label: 'Toutes les catégories' },
@@ -192,20 +238,23 @@ export default function ProjectsPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant={sort === 'popular' ? 'default' : 'outline'} size="sm" onClick={() => { setSort('popular'); setPage(1); }}>
                 Plus populaires
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant={sort === 'recent' ? 'default' : 'outline'} size="sm" onClick={() => { setSort('recent'); setPage(1); }}>
                 Plus récents
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant={sort === 'views' ? 'default' : 'outline'} size="sm" onClick={() => { setSort('views'); setPage(1); }}>
                 Plus vus
               </Button>
             </div>
           </div>
 
-          {/* Grille de projets */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Grille de projets (masonry) */}
+          {loading ? (
+            <div className="text-center py-12 text-gray-500">Chargement...</div>
+          ) : (
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 [&>*]:mb-6 [&>*]:break-inside-avoid">
             {projects.map((project) => (
               <Card key={project.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                 <Link href={`/projects/${project.id}`} aria-label={`Voir le projet : ${project.title}`}>
@@ -277,15 +326,22 @@ export default function ProjectsPage() {
               </Card>
             ))}
           </div>
+          )}
 
           {/* Pagination */}
           <div className="flex justify-center mt-12">
             <div className="flex space-x-2">
-              <Button variant="outline">Précédent</Button>
-              <Button>1</Button>
-              <Button variant="outline">2</Button>
-              <Button variant="outline">3</Button>
-              <Button variant="outline">Suivant</Button>
+              <Button variant="outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Précédent</Button>
+              {getPageNumbers(page, totalPages).map((p, i) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${i}`} className="px-3 py-2 text-gray-500">…</span>
+                ) : (
+                  <Button key={p} variant={p === page ? 'default' : 'outline'} onClick={() => setPage(p)}>
+                    {p}
+                  </Button>
+                )
+              )}
+              <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Suivant</Button>
             </div>
           </div>
         </div>

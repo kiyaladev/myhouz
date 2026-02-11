@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import Layout from '../../components/layout/Layout';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { api } from '../../lib/api';
 
 interface Product {
   id: string;
+  _id?: string;
   name: string;
   description: string;
   price: {
@@ -27,77 +30,91 @@ interface Product {
   };
 }
 
+const mockProducts: Product[] = [
+  {
+    id: '1',
+    name: 'Canapé 3 places en velours bleu',
+    description: 'Canapé confortable en velours bleu marine avec pieds en bois massif',
+    price: { amount: 899, currency: 'EUR', originalPrice: 1299 },
+    images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop'],
+    category: 'mobilier',
+    brand: 'Maison du Canapé',
+    rating: { average: 4.5, totalReviews: 124 },
+    seller: { name: 'Mobilier Design', location: 'Paris, France' }
+  },
+  {
+    id: '2',
+    name: 'Lampe de table moderne',
+    description: 'Lampe de table design en métal doré avec abat-jour en tissu',
+    price: { amount: 129, currency: 'EUR' },
+    images: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop'],
+    category: 'eclairage',
+    brand: 'Lumière & Co',
+    rating: { average: 4.2, totalReviews: 67 },
+    seller: { name: 'Éclairage Premium', location: 'Lyon, France' }
+  },
+  {
+    id: '3',
+    name: 'Tapis berbère authentique',
+    description: 'Tapis tissé main en laine naturelle, motifs berbères traditionnels',
+    price: { amount: 299, currency: 'EUR' },
+    images: ['https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=400&h=300&fit=crop'],
+    category: 'textile',
+    brand: 'Atlas Carpets',
+    rating: { average: 4.8, totalReviews: 89 },
+    seller: { name: 'Artisanat du Monde', location: 'Marseille, France' }
+  }
+];
+
 export default function ProductsPage() {
   const [filters, setFilters] = useState({
     category: '',
     priceRange: '',
     search: ''
   });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [loading, setLoading] = useState(false);
 
-  // Mock data
-  const products: Product[] = [
-    {
-      id: '1',
-      name: 'Canapé 3 places en velours bleu',
-      description: 'Canapé confortable en velours bleu marine avec pieds en bois massif',
-      price: {
-        amount: 899,
-        currency: 'EUR',
-        originalPrice: 1299
-      },
-      images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop'],
-      category: 'mobilier',
-      brand: 'Maison du Canapé',
-      rating: {
-        average: 4.5,
-        totalReviews: 124
-      },
-      seller: {
-        name: 'Mobilier Design',
-        location: 'Paris, France'
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params: Record<string, string> = { page: String(page), limit: '12' };
+      if (filters.category) params.category = filters.category;
+      if (filters.priceRange) params.priceRange = filters.priceRange;
+      if (filters.search) params.search = filters.search;
+
+      const res = await api.get<Product[]>('/products', params);
+      if (res.success && res.data) {
+        setProducts(res.data.map(p => ({ ...p, id: p.id || p._id || '' })));
+        if (res.pagination) {
+          setTotalPages(res.pagination.pages);
+        }
       }
-    },
-    {
-      id: '2',
-      name: 'Lampe de table moderne',
-      description: 'Lampe de table design en métal doré avec abat-jour en tissu',
-      price: {
-        amount: 129,
-        currency: 'EUR'
-      },
-      images: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop'],
-      category: 'eclairage',
-      brand: 'Lumière & Co',
-      rating: {
-        average: 4.2,
-        totalReviews: 67
-      },
-      seller: {
-        name: 'Éclairage Premium',
-        location: 'Lyon, France'
-      }
-    },
-    {
-      id: '3',
-      name: 'Tapis berbère authentique',
-      description: 'Tapis tissé main en laine naturelle, motifs berbères traditionnels',
-      price: {
-        amount: 299,
-        currency: 'EUR'
-      },
-      images: ['https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=400&h=300&fit=crop'],
-      category: 'textile',
-      brand: 'Atlas Carpets',
-      rating: {
-        average: 4.8,
-        totalReviews: 89
-      },
-      seller: {
-        name: 'Artisanat du Monde',
-        location: 'Marseille, France'
-      }
+    } catch {
+      setProducts(mockProducts);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
     }
-  ];
+  }, [page, filters]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const getPageNumbers = (current: number, total: number): (number | 'ellipsis')[] => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | 'ellipsis')[] = [1];
+    if (current > 3) pages.push('ellipsis');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i);
+    }
+    if (current < total - 2) pages.push('ellipsis');
+    pages.push(total);
+    return pages;
+  };
 
   const categories = [
     { value: '', label: 'Toutes les catégories' },
@@ -195,9 +212,13 @@ export default function ProductsPage() {
           </div>
 
           {/* Grille de produits */}
+          {loading ? (
+            <div className="text-center py-12 text-gray-500">Chargement...</div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+              <Link key={product.id} href={`/products/${product.id}`}>
+              <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                 <div className="relative">
                   <img
                     src={product.images[0]}
@@ -265,17 +286,25 @@ export default function ProductsPage() {
                   </Button>
                 </div>
               </Card>
+              </Link>
             ))}
           </div>
+          )}
 
           {/* Pagination */}
           <div className="flex justify-center mt-12">
             <div className="flex space-x-2">
-              <Button variant="outline">Précédent</Button>
-              <Button>1</Button>
-              <Button variant="outline">2</Button>
-              <Button variant="outline">3</Button>
-              <Button variant="outline">Suivant</Button>
+              <Button variant="outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Précédent</Button>
+              {getPageNumbers(page, totalPages).map((p, i) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${i}`} className="px-3 py-2 text-gray-500">…</span>
+                ) : (
+                  <Button key={p} variant={p === page ? 'default' : 'outline'} onClick={() => setPage(p)}>
+                    {p}
+                  </Button>
+                )
+              )}
+              <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Suivant</Button>
             </div>
           </div>
         </div>

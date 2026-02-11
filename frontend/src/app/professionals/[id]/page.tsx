@@ -9,6 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 
+interface ProfessionalProject {
+  _id: string;
+  title: string;
+  images: { url: string; caption?: string }[];
+  category: string;
+  room: string;
+  likes: number;
+  views: number;
+}
+
 interface ProfessionalProfile {
   _id: string;
   firstName: string;
@@ -49,9 +59,40 @@ const mockProfessional: ProfessionalProfile = {
   createdAt: '2023-06-15T00:00:00.000Z',
 };
 
+const mockProjects: ProfessionalProject[] = [
+  {
+    _id: 'p1',
+    title: 'Rénovation appartement haussmannien',
+    images: [{ url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop', caption: 'Salon principal' }],
+    category: 'renovation',
+    room: 'salon',
+    likes: 89,
+    views: 1200,
+  },
+  {
+    _id: 'p2',
+    title: 'Cuisine moderne ouverte',
+    images: [{ url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop', caption: 'Vue d\'ensemble' }],
+    category: 'renovation',
+    room: 'cuisine',
+    likes: 56,
+    views: 890,
+  },
+  {
+    _id: 'p3',
+    title: 'Suite parentale contemporaine',
+    images: [{ url: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=400&h=300&fit=crop', caption: 'Chambre' }],
+    category: 'decoration',
+    room: 'chambre',
+    likes: 42,
+    views: 650,
+  },
+];
+
 export default function ProfessionalDetailPage() {
   const params = useParams();
   const [professional, setProfessional] = useState<ProfessionalProfile | null>(null);
+  const [projects, setProjects] = useState<ProfessionalProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -68,7 +109,21 @@ export default function ProfessionalDetailPage() {
       }
     };
 
+    const fetchProjects = async () => {
+      try {
+        const response = await api.get<ProfessionalProject[]>(`/projects/professional/${params.id}`);
+        if (response.success && response.data) {
+          setProjects(response.data);
+        } else {
+          setProjects(mockProjects);
+        }
+      } catch {
+        setProjects(mockProjects);
+      }
+    };
+
     fetchProfessional();
+    fetchProjects();
   }, [params.id]);
 
   if (isLoading) {
@@ -188,16 +243,40 @@ export default function ProfessionalDetailPage() {
                 </Card>
               )}
 
-              {/* Portfolio placeholder */}
+              {/* Portfolio / Projects Gallery */}
               <Card>
                 <CardHeader>
                   <CardTitle>Portfolio</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-gray-400">
-                    <p className="text-lg mb-2">Pas encore de projets</p>
-                    <p className="text-sm">Les projets de ce professionnel apparaîtront ici</p>
-                  </div>
+                  {projects.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {projects.map((project) => (
+                        <Link key={project._id} href={`/projects/${project._id}`}>
+                          <div className="group relative overflow-hidden rounded-lg">
+                            <img
+                              src={project.images[0]?.url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop'}
+                              alt={project.title}
+                              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <h4 className="text-sm font-semibold line-clamp-1">{project.title}</h4>
+                              <div className="flex items-center gap-3 text-xs mt-1">
+                                <span>❤️ {project.likes}</span>
+                                <span>👁️ {project.views}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <p className="text-lg mb-2">Pas encore de projets</p>
+                      <p className="text-sm">Les projets de ce professionnel apparaîtront ici</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

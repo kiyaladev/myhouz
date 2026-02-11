@@ -43,10 +43,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 1.5 | Configuration CORS | ✅ | Intégré dans server.ts |
 | 1.6 | Configuration des uploads fichiers (Multer) | ✅ | `backend/src/middleware/upload.ts` |
 | 1.7 | Intégration MinIO pour stockage images (S3-compatible) | ✅ | `backend/src/config/minio.ts`, `backend/src/services/uploadService.ts`, routes `/api/uploads` |
-| 1.8 | Configuration Stripe (paiements) | ❌ | Dépendance installée mais non intégrée |
-| 1.9 | Configuration Nodemailer (e-mails) | ❌ | Dépendance installée mais non intégrée |
+| 1.8 | Configuration Stripe (paiements) | ✅ | `backend/src/config/stripe.ts` — Client Stripe configuré |
+| 1.9 | Configuration Nodemailer (e-mails) | ✅ | `backend/src/config/email.ts` — Transporter + helper `sendEmail` |
 | 1.10 | Docker / Docker Compose pour dev local | ✅ | `docker-compose.yml` avec MongoDB + MinIO |
-| 1.11 | Seed data / données de démonstration | ❌ | Script pour populer la BD avec des données de démo |
+| 1.11 | Seed data / données de démonstration | ✅ | `backend/src/seed.ts` — 4 utilisateurs, 4 projets, 4 produits, 3 articles, 3 posts forum |
 
 ---
 
@@ -60,11 +60,11 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 2.3 | Connexion (login) avec JWT | ✅ | `UserController.login` |
 | 2.4 | Middleware d'authentification | ✅ | `backend/src/middleware/auth.ts` |
 | 2.5 | Middleware rôle (particulier / professionnel) | ✅ | `requireProfessional`, `requireParticulier` |
-| 2.6 | Mot de passe oublié / reset | ❌ | Endpoint + envoi e-mail |
+| 2.6 | Mot de passe oublié / reset | ✅ | `UserController.forgotPassword` + `UserController.resetPassword` avec token sécurisé |
 | 2.7 | Vérification e-mail | ❌ | Token de vérification + e-mail |
 | 2.8 | OAuth (Google, Facebook) | ❌ | Stratégie Passport.js ou équivalent |
 | 2.9 | Gestion du profil utilisateur (CRUD) | ✅ | `UserController.getProfile` + `UserController.updateProfile` |
-| 2.10 | Upload photo de profil / avatar | ❌ | — |
+| 2.10 | Upload photo de profil / avatar | ✅ | `UserController.uploadAvatar` + route `POST /users/profile/avatar` |
 | 2.11 | Refresh token / gestion des sessions | ❌ | — |
 
 ### Frontend
@@ -74,7 +74,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 2.13 | Boutons OAuth (Google, Facebook) | 🟡 | UI présente, pas connecté au backend |
 | 2.14 | Contexte d'authentification (AuthContext/Provider) | ✅ | `frontend/src/contexts/AuthContext.tsx` avec JWT + localStorage |
 | 2.15 | Protection des routes côté client | ✅ | Middleware Next.js + redirect dans les composants |
-| 2.16 | Page mot de passe oublié | ❌ | — |
+| 2.16 | Page mot de passe oublié | ✅ | `frontend/src/app/auth/forgot-password/page.tsx` + `frontend/src/app/auth/reset-password/page.tsx` |
 | 2.17 | Page profil utilisateur | ✅ | `frontend/src/app/profile/page.tsx` |
 | 2.18 | Page édition du profil | ✅ | `frontend/src/app/profile/edit/page.tsx` |
 
@@ -90,10 +90,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 3.4 | Section statistiques | ✅ | Chiffres statiques |
 | 3.5 | Section fonctionnalités | ✅ | 3 cartes (Inspiration, Pros, Marketplace) |
 | 3.6 | Section CTA (Call to Action) | ✅ | Inscription + En savoir plus |
-| 3.7 | Carrousel de projets tendance | ❌ | Slider interactif avec projets populaires |
-| 3.8 | Section « Professionnels à la une » | ❌ | Carousel de professionnels recommandés |
-| 3.9 | Section « Produits populaires » | ❌ | Grille de produits tendance |
-| 3.10 | Section « Articles récents » | ❌ | Aperçu des derniers articles du magazine |
+| 3.7 | Carrousel de projets tendance | ✅ | Section « Projets tendance » avec scroll horizontal, 6 projets |
+| 3.8 | Section « Professionnels à la une » | ✅ | Grille 4 professionnels avec avatar, services, notation |
+| 3.9 | Section « Produits populaires » | ✅ | Grille 4 produits avec image, prix, notation |
+| 3.10 | Section « Articles récents » | ✅ | Grille 3 articles avec image, catégorie, excerpt |
 | 3.11 | Personnalisation selon le profil connecté | ❌ | Recommandations basées sur les préférences |
 | 3.12 | Hero image/vidéo immersive (style Houzz) | ❌ | Grande photo plein écran avec overlay |
 
@@ -108,22 +108,22 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 4.2 | CRUD projets | ✅ | `ProjectController` |
 | 4.3 | Upload multiple images par projet | 🟡 | Logique Multer présente, à tester |
 | 4.4 | Filtrage par catégorie / pièce / style | ✅ | Paramètres de query dans le controller |
-| 4.5 | Tri (populaire, récent, vues) | 🟡 | Partiel |
-| 4.6 | Système de likes / favoris | ❌ | Ajout/retrait de likes sur un projet |
+| 4.5 | Tri (populaire, récent, vues) | ✅ | Boutons de tri dans `projects/page.tsx` + paramètre sort API |
+| 4.6 | Système de likes / favoris | ✅ | `ProjectController.toggleLike` + route `POST /projects/:id/like` |
 | 4.7 | Tag de produits sur les photos | ❌ | Positionnement de produits sur une image |
-| 4.8 | Pagination côté serveur | 🟡 | À vérifier/compléter |
+| 4.8 | Pagination côté serveur | ✅ | Pagination dans `ProjectController.getProjects` + frontend |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 4.9 | Page liste des projets avec filtres | ✅ | `frontend/src/app/projects/page.tsx` |
-| 4.10 | Grille masonry (style Pinterest/Houzz) | ❌ | Layout en colonnes décalées |
+| 4.10 | Grille masonry (style Pinterest/Houzz) | ✅ | CSS columns layout dans `projects/page.tsx` |
 | 4.11 | Page détail d'un projet | ✅ | `frontend/src/app/projects/[id]/page.tsx` — Galerie photos, description, professionnel |
 | 4.12 | Visionneuse d'images plein écran (lightbox) | ❌ | Modal avec navigation entre images |
 | 4.13 | Bouton « Sauvegarder dans un Ideabook » | ❌ | Popup de sélection d'ideabook |
 | 4.14 | Affichage des produits tagués sur les photos | ❌ | Hotspots cliquables sur les images |
-| 4.15 | Scroll infini ou pagination | ❌ | Chargement progressif des projets |
-| 4.16 | Connexion au backend API | ❌ | Remplacer les données mock par des appels API |
+| 4.15 | Scroll infini ou pagination | ✅ | Pagination fonctionnelle avec numéros de page + appels API |
+| 4.16 | Connexion au backend API | ✅ | `api.get('/projects')` avec fallback mock data |
 
 ---
 
@@ -134,7 +134,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 5.1 | Filtre utilisateurs de type professionnel | ✅ | Via `userType: 'professionnel'` |
 | 5.2 | Recherche géolocalisée (par ville/code postal) | 🟡 | Index géospatial dans le modèle User |
-| 5.3 | Filtrage par spécialité / service | ❌ | Endpoint dédié |
+| 5.3 | Filtrage par spécialité / service | ✅ | Filtre `services` dans `searchProfessionals` |
 | 5.4 | Système de notation moyen par professionnel | ❌ | Agrégation depuis les avis |
 | 5.5 | Profil professionnel enrichi | 🟡 | Champs `professionalInfo` dans le modèle |
 | 5.6 | Demande de devis | ❌ | Endpoint + notification au professionnel |
@@ -147,7 +147,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 5.9 | Carte interactive (Google Maps / Mapbox) | ❌ | Localisation des pros sur une carte |
 | 5.10 | Formulaire de demande de devis | ❌ | Description du projet + envoi au pro |
 | 5.11 | Bouton « Contacter ce professionnel » | ❌ | Ouvre la messagerie |
-| 5.12 | Galerie des projets du professionnel | ❌ | Sous-page portfolio |
+| 5.12 | Galerie des projets du professionnel | ✅ | Section portfolio dans `professionals/[id]/page.tsx` avec appel API `projects/professional/:id` |
 
 ---
 
@@ -174,7 +174,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 6.12 | Composant panier (sidebar/drawer) | ❌ | — |
 | 6.13 | Page panier récapitulatif | ❌ | Liste des articles, quantités, total |
 | 6.14 | Système de filtres avancés (sidebar) | ❌ | Filtres à facettes style Houzz |
-| 6.15 | Connexion au backend API | ❌ | Remplacer les données mock |
+| 6.15 | Connexion au backend API | ✅ | `api.get('/products')` avec fallback mock data + pagination |
 | 6.16 | Suggestions de produits similaires | ❌ | Section « Vous aimerez aussi » |
 
 ---
@@ -186,17 +186,17 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 7.1 | Modèle Ideabook | ✅ | `backend/src/models/Ideabook.ts` |
 | 7.2 | CRUD ideabooks | ✅ | `IdeabookController` |
-| 7.3 | Ajout/suppression d'éléments (photos, produits) | 🟡 | À vérifier |
-| 7.4 | Collaboration (partage avec d'autres utilisateurs) | ❌ | Invitations et permissions |
-| 7.5 | Ideabooks publics / privés | 🟡 | Champ de visibilité dans le modèle |
+| 7.3 | Ajout/suppression d'éléments (photos, produits) | ✅ | `IdeabookController.addItem` + `removeItem` + routes |
+| 7.4 | Collaboration (partage avec d'autres utilisateurs) | ✅ | `IdeabookController.inviteCollaborator`, `updateCollaboratorPermission`, `removeCollaborator` |
+| 7.5 | Ideabooks publics / privés | ✅ | `getPublicIdeabooks`, `getPublicIdeabook` + champ `isPublic` |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 7.6 | Page liste des ideabooks de l'utilisateur | ✅ | `frontend/src/app/ideabooks/page.tsx` — Grille de carnets avec couverture, recherche |
 | 7.7 | Page détail d'un ideabook | ✅ | `frontend/src/app/ideabooks/[id]/page.tsx` — Grille des éléments, infos créateur, tags |
-| 7.8 | Modal « Sauvegarder dans un ideabook » | ❌ | Popup lors du clic sur le cœur/bookmark |
-| 7.9 | Création rapide d'un ideabook | ❌ | Formulaire minimal (nom, description) |
+| 7.8 | Modal « Sauvegarder dans un ideabook » | ✅ | `frontend/src/components/SaveToIdeabookModal.tsx` — Sélection ideabook + création rapide |
+| 7.9 | Création rapide d'un ideabook | ✅ | Intégré dans le modal SaveToIdeabook |
 | 7.10 | Drag & drop pour réorganiser les éléments | ❌ | — |
 | 7.11 | Partage d'ideabook (lien public, invitation) | ❌ | — |
 | 7.12 | Explorer les ideabooks publics populaires | ❌ | Page de découverte |
@@ -210,7 +210,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 8.1 | Modèle Article | ✅ | `backend/src/models/Article.ts` |
 | 8.2 | CRUD articles | ✅ | `ArticleController` |
-| 8.3 | Catégorisation des articles | 🟡 | Champ catégorie dans le modèle |
+| 8.3 | Catégorisation des articles | ✅ | Champ catégorie enum dans le modèle (conseils/tendances/guides/interviews/actualites/diy) |
 | 8.4 | Système de commentaires sur articles | ❌ | — |
 | 8.5 | Articles liés / suggestions | ❌ | — |
 
@@ -219,9 +219,9 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 8.6 | Page liste des articles (blog/magazine) | ✅ | `frontend/src/app/articles/page.tsx` — Featured article, grille, filtres catégorie |
 | 8.7 | Page détail d'un article | ✅ | `frontend/src/app/articles/[slug]/page.tsx` — Contenu, auteur, articles liés, partage |
-| 8.8 | Filtrage par catégorie / tag | ❌ | — |
+| 8.8 | Filtrage par catégorie / tag | ✅ | Boutons catégorie dans `articles/page.tsx` + filtre API |
 | 8.9 | Section commentaires | ❌ | — |
-| 8.10 | Partage sur les réseaux sociaux | ❌ | Boutons de partage |
+| 8.10 | Partage sur les réseaux sociaux | ✅ | Boutons Twitter, Facebook, Copier le lien dans `articles/[slug]/page.tsx` |
 | 8.11 | Composant éditeur de contenu riche (admin) | ❌ | WYSIWYG pour rédiger les articles |
 
 ---
@@ -233,9 +233,9 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 9.1 | Modèle ForumPost / ForumReply | ✅ | `backend/src/models/Forum.ts` |
 | 9.2 | CRUD posts et réponses | ✅ | `ForumController` |
-| 9.3 | Catégorisation des discussions | 🟡 | — |
-| 9.4 | Système de votes (upvote/downvote) | ❌ | — |
-| 9.5 | Marquer une réponse comme « meilleure réponse » | ❌ | — |
+| 9.3 | Catégorisation des discussions | ✅ | Enum catégorie dans le modèle (decoration/renovation/jardinage/bricolage/architecture/general) |
+| 9.4 | Système de votes (upvote/downvote) | ✅ | `ForumController.votePost` + `ForumController.voteReply` + routes |
+| 9.5 | Marquer une réponse comme « meilleure réponse » | ✅ | `ForumController.markBestAnswer` + route `PUT /:postId/best-answer/:replyId` |
 | 9.6 | Modération (signalement, suppression) | ❌ | — |
 
 ### Frontend
@@ -243,10 +243,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 9.7 | Page liste des discussions | ✅ | `frontend/src/app/forum/page.tsx` — Liste avec filtres catégorie, recherche, badges résolu |
 | 9.8 | Page détail d'une discussion + réponses | ✅ | `frontend/src/app/forum/[id]/page.tsx` — Thread, réponses, meilleure réponse, formulaire |
-| 9.9 | Formulaire pour poser une question | ❌ | Titre, catégorie, description, images |
-| 9.10 | Formulaire de réponse | ❌ | Éditeur texte riche ou Markdown |
-| 9.11 | Recherche dans le forum | ❌ | — |
-| 9.12 | Filtrage par catégorie / tag | ❌ | — |
+| 9.9 | Formulaire pour poser une question | ✅ | `frontend/src/app/forum/new/page.tsx` — Titre, catégorie, contenu, tags |
+| 9.10 | Formulaire de réponse | ✅ | Formulaire dans `forum/[id]/page.tsx` connecté à `api.post('/forum/:id/replies')` |
+| 9.11 | Recherche dans le forum | ✅ | `ForumController.searchPosts` + barre de recherche dans `forum/page.tsx` |
+| 9.12 | Filtrage par catégorie / tag | ✅ | Boutons catégorie dans `forum/page.tsx` + filtre côté client |
 
 ---
 
@@ -480,15 +480,15 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 | Module | Progression estimée |
 |--------|-------------------|
-| Infrastructure & Configuration | 70% |
-| Authentification & Utilisateurs | 65% |
-| Page d'Accueil | 50% |
-| Galerie de Photos / Projets | 45% |
-| Annuaire des Professionnels | 35% |
-| Marketplace (Produits) | 40% |
-| Ideabooks | 35% |
-| Articles & Magazine | 40% |
-| Forum / Discussions | 40% |
+| Infrastructure & Configuration | 90% |
+| Authentification & Utilisateurs | 80% |
+| Page d'Accueil | 75% |
+| Galerie de Photos / Projets | 70% |
+| Annuaire des Professionnels | 55% |
+| Marketplace (Produits) | 50% |
+| Ideabooks | 60% |
+| Articles & Magazine | 65% |
+| Forum / Discussions | 80% |
 | Messagerie | 20% |
 | Avis & Évaluations | 15% |
 | Recherche Globale | 10% |
@@ -501,7 +501,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Performance & Optimisation | 5% |
 | Tests | 0% |
 | Déploiement & CI/CD | 0% |
-| **Total global** | **~30%** |
+| **Total global** | **~40%** |
 
 ---
 

@@ -117,6 +117,7 @@ export default function ForumDiscussionPage() {
   const [discussion, setDiscussion] = useState<DiscussionDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [replyContent, setReplyContent] = useState('');
+  const [replyError, setReplyError] = useState('');
 
   useEffect(() => {
     const fetchDiscussion = async () => {
@@ -140,8 +141,20 @@ export default function ForumDiscussionPage() {
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyContent.trim()) return;
-    // Placeholder: would call api.post(`/forum/${params.id}/replies`, { content: replyContent })
-    setReplyContent('');
+    setReplyError('');
+    try {
+      const response = await api.post(`/forum/${params.id}/replies`, { content: replyContent });
+      if (response.success && response.data) {
+        setDiscussion(prev => prev ? {
+          ...prev,
+          replies: [...prev.replies, response.data as Reply],
+          replyCount: prev.replyCount + 1
+        } : prev);
+      }
+      setReplyContent('');
+    } catch {
+      setReplyError('Erreur lors de la publication de votre réponse. Veuillez réessayer.');
+    }
   };
 
   if (isLoading) {
@@ -325,6 +338,11 @@ export default function ForumDiscussionPage() {
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Répondre</h3>
               <form onSubmit={handleSubmitReply}>
+                {replyError && (
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                    {replyError}
+                  </div>
+                )}
                 <textarea
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
