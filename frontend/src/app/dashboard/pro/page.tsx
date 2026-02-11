@@ -16,6 +16,7 @@ import {
   Plus,
   Package,
   MessageSquare,
+  Settings,
 } from 'lucide-react';
 
 // Mock data
@@ -234,7 +235,7 @@ export default function ProDashboardPage() {
                 </Link>
                 <Link href="/dashboard/pro/settings">
                   <Button variant="outline">
-                    <Star className="h-4 w-4 mr-2" />
+                    <Settings className="h-4 w-4 mr-2" />
                     Profil professionnel
                   </Button>
                 </Link>

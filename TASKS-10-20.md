@@ -35,7 +35,7 @@
 | 11.2 | CRUD avis | ✅ | `ReviewController` |
 | 11.3 | Vérification (un avis par utilisateur par cible) | ✅ | Duplicate check dans `ReviewController.createReview` |
 | 11.4 | Calcul de la note moyenne | ✅ | `updateEntityRating()` — Agrégation MongoDB dans `ReviewController` |
-| 11.5 | Signalement d'avis inappropriés | ❌ | — |
+| 11.5 | Signalement d'avis inappropriés | ✅ | `ReviewController.reportReview` — Route POST `/:id/report` avec raison + détection doublons |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
@@ -80,7 +80,7 @@
 | 13.4 | Mes avis | ✅ | `frontend/src/app/dashboard/reviews/page.tsx` — Avis rédigés avec édition/suppression |
 | 13.5 | Mes projets favoris | ✅ | `frontend/src/app/dashboard/favorites/page.tsx` — Photos et projets sauvegardés |
 | 13.6 | Paramètres du compte | ✅ | `frontend/src/app/dashboard/settings/page.tsx` — E-mail, mot de passe, préférences |
-| 13.7 | Notifications | ❌ | Centre de notifications |
+| 13.7 | Notifications | ✅ | `frontend/src/app/dashboard/notifications/page.tsx` — Centre de notifications avec filtres par type |
 
 ---
 
@@ -90,12 +90,12 @@
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 14.1 | Page tableau de bord professionnel | ✅ | `frontend/src/app/dashboard/pro/page.tsx` — Statistiques, demandes, projets, avis |
-| 14.2 | Gestion du portfolio (projets) | ❌ | Ajouter/éditer/supprimer des projets |
-| 14.3 | Gestion des produits (marketplace) | ❌ | Ajouter/éditer/supprimer des produits |
-| 14.4 | Gestion des avis reçus | ❌ | Répondre aux avis clients |
+| 14.2 | Gestion du portfolio (projets) | ✅ | `frontend/src/app/dashboard/pro/projects/page.tsx` — Liste, recherche, filtres par statut |
+| 14.3 | Gestion des produits (marketplace) | ✅ | `frontend/src/app/dashboard/pro/products/page.tsx` — Catalogue, stats, filtres par statut |
+| 14.4 | Gestion des avis reçus | ✅ | `frontend/src/app/dashboard/pro/reviews/page.tsx` — Consultation et réponse aux avis |
 | 14.5 | Statistiques (vues, contacts, devis) | ❌ | Graphiques et métriques |
 | 14.6 | Gestion des demandes de devis | ❌ | Liste des demandes avec réponse |
-| 14.7 | Paramètres du profil professionnel | ❌ | Infos, services, zone géographique |
+| 14.7 | Paramètres du profil professionnel | ✅ | `frontend/src/app/dashboard/pro/settings/page.tsx` — Infos entreprise, adresse, services |
 | 14.8 | Gestion de l'abonnement | ❌ | Plans gratuit / premium |
 
 ---
@@ -108,7 +108,7 @@
 | 15.1 | Modèle Order | ✅ | `backend/src/models/Order.ts` |
 | 15.2 | CRUD commandes | ✅ | `OrderController` |
 | 15.3 | Intégration Stripe Checkout | ❌ | Session de paiement + webhooks |
-| 15.4 | Gestion des statuts de commande | ❌ | En attente → Payée → Expédiée → Livrée |
+| 15.4 | Gestion des statuts de commande | ✅ | `OrderController.updateOrderStatus` — pending → confirmed → processing → shipped → delivered |
 | 15.5 | E-mail de confirmation de commande | ❌ | Template + envoi via Nodemailer |
 | 15.6 | Gestion des remboursements | ❌ | — |
 
@@ -155,7 +155,7 @@
 | 17.7 | Page « Contact » | ✅ | `frontend/src/app/contact/page.tsx` — Formulaire + infos de contact |
 | 17.8 | Page « Centre d'aide / FAQ » | ✅ | `frontend/src/app/help/page.tsx` — FAQ interactive avec recherche et catégories |
 | 17.9 | Page 404 personnalisée | ✅ | `frontend/src/app/not-found.tsx` — Page 404 avec liens de navigation |
-| 17.10 | Metadata SEO par page (title, description, OG) | 🟡 | Metadata de base dans layout.tsx |
+| 17.10 | Metadata SEO par page (title, description, OG) | ✅ | Metadata Next.js sur 13+ pages (home, about, terms, privacy, legal, products, professionals, projects, contact, help, search, reviews, articles, forum) |
 | 17.11 | Sitemap.xml dynamique | ✅ | `frontend/src/app/sitemap.ts` — Sitemap Next.js dynamique |
 | 17.12 | Fichier robots.txt | ✅ | `frontend/public/robots.txt` |
 | 17.13 | Structured data (JSON-LD) | ✅ | `frontend/src/components/seo/JsonLd.tsx` — Pour les produits, pros, articles |
@@ -220,14 +220,14 @@
 | Module | Progression estimée |
 |--------|-------------------|
 | Messagerie | 50% |
-| Avis & Évaluations | 80% |
+| Avis & Évaluations | 100% |
 | Recherche Globale | 80% |
-| Tableau de Bord Utilisateur | 85% |
-| Tableau de Bord Professionnel | 15% |
-| Commandes & Paiements | 20% |
+| Tableau de Bord Utilisateur | 100% |
+| Tableau de Bord Professionnel | 60% |
+| Commandes & Paiements | 30% |
 | Notifications | 65% |
-| Pages Statiques & SEO | 80% |
+| Pages Statiques & SEO | 100% |
 | Design System & UI | 85% |
 | Performance & Optimisation | 25% |
 | Tests | 40% |
-| **Moyenne sections 10–20** | **~57%** |
+| **Moyenne sections 10–20** | **~65%** |
