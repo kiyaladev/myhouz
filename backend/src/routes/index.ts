@@ -11,6 +11,7 @@ import orderRoutes from './orderRoutes';
 import uploadRoutes from './uploadRoutes';
 import notificationRoutes from './notificationRoutes';
 import searchRoutes from './searchRoutes';
+import cartRoutes from './cartRoutes';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.use('/orders', orderRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/search', searchRoutes);
+router.use('/cart', cartRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {

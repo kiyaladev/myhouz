@@ -24,6 +24,8 @@ router.post('/register', UserController.register);
 router.post('/login', UserController.login);
 router.post('/forgot-password', passwordResetLimiter, UserController.forgotPassword);
 router.post('/reset-password', passwordResetLimiter, UserController.resetPassword);
+router.post('/verify-email', UserController.verifyEmail);
+router.post('/resend-verification', passwordResetLimiter, UserController.resendVerificationEmail);
 router.get('/professionals/search', UserController.searchProfessionals);
 router.get('/professionals/:id', UserController.getProfessionalProfile);
 
