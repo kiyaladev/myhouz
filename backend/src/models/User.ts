@@ -48,6 +48,8 @@ export interface IUser extends Document {
     notifications: boolean;
     language: string;
   };
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   isActive: boolean;
   emailVerified: boolean;
   createdAt: Date;
@@ -106,6 +108,8 @@ const UserSchema: Schema = new Schema({
     notifications: { type: Boolean, default: true },
     language: { type: String, default: 'fr' }
   },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
   isActive: { type: Boolean, default: true },
   emailVerified: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
