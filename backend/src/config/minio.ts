@@ -38,7 +38,8 @@ export const initMinio = async (): Promise<void> => {
       console.log(`✅ Bucket MinIO "${MINIO_BUCKET}" déjà existant`);
     }
   } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation de MinIO:', error);
+    const message = error instanceof Error ? error.message : 'Erreur inconnue';
+    console.error('❌ Erreur lors de l\'initialisation de MinIO:', message);
     throw error;
   }
 };

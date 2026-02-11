@@ -1,14 +1,21 @@
 import path from 'path';
+import crypto from 'crypto';
 import minioClient, { MINIO_BUCKET } from '../config/minio';
 
 /**
  * Génère l'URL publique d'un objet MinIO.
+ * Utilise MINIO_PUBLIC_URL si défini (pour la production), sinon construit l'URL.
  */
 function getPublicUrl(objectName: string): string {
+  const publicUrl = process.env.MINIO_PUBLIC_URL;
+  if (publicUrl) {
+    return `${publicUrl}/${MINIO_BUCKET}/${objectName}`;
+  }
   const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
-  const port = process.env.MINIO_PORT || '9000';
   const endpoint = process.env.MINIO_ENDPOINT || 'localhost';
-  return `${protocol}://${endpoint}:${port}/${MINIO_BUCKET}/${objectName}`;
+  const port = process.env.MINIO_PORT || '9000';
+  const portSuffix = (protocol === 'https' && port === '443') || (protocol === 'http' && port === '80') ? '' : `:${port}`;
+  return `${protocol}://${endpoint}${portSuffix}/${MINIO_BUCKET}/${objectName}`;
 }
 
 /**
@@ -52,9 +59,9 @@ export async function uploadFile(
   entity: string
 ): Promise<UploadResult> {
   const folder = getFolderForEntity(entity);
-  const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+  const uniqueId = crypto.randomUUID();
   const extension = path.extname(file.originalname);
-  const objectName = `${folder}/${file.fieldname}-${uniqueSuffix}${extension}`;
+  const objectName = `${folder}/${uniqueId}${extension}`;
 
   await minioClient.putObject(MINIO_BUCKET, objectName, file.buffer, file.size, {
     'Content-Type': file.mimetype

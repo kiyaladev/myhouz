@@ -5,6 +5,8 @@ import { uploadFile, uploadFiles, deleteFile } from '../services/uploadService';
 
 const router = Router();
 
+const ALLOWED_ENTITIES = ['projects', 'products', 'profiles', 'ideabooks', 'reviews', 'articles'];
+
 // Upload d'une seule image
 router.post(
   '/single',
@@ -18,6 +20,11 @@ router.post(
       }
 
       const entity = (req.query.entity as string) || 'misc';
+      if (entity !== 'misc' && !ALLOWED_ENTITIES.includes(entity)) {
+        res.status(400).json({ success: false, message: `Type d'entité invalide. Types autorisés: ${ALLOWED_ENTITIES.join(', ')}` });
+        return;
+      }
+
       const result = await uploadFile(req.file, entity);
 
       res.json({
@@ -26,7 +33,8 @@ router.post(
         data: result
       });
     } catch (error) {
-      console.error('Erreur lors de l\'upload:', error);
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      console.error('Erreur lors de l\'upload:', message);
       res.status(500).json({ success: false, message: 'Erreur lors de l\'upload du fichier' });
     }
   }
@@ -46,6 +54,11 @@ router.post(
       }
 
       const entity = (req.query.entity as string) || 'misc';
+      if (entity !== 'misc' && !ALLOWED_ENTITIES.includes(entity)) {
+        res.status(400).json({ success: false, message: `Type d'entité invalide. Types autorisés: ${ALLOWED_ENTITIES.join(', ')}` });
+        return;
+      }
+
       const results = await uploadFiles(files, entity);
 
       res.json({
@@ -54,7 +67,8 @@ router.post(
         data: results
       });
     } catch (error) {
-      console.error('Erreur lors de l\'upload multiple:', error);
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      console.error('Erreur lors de l\'upload multiple:', message);
       res.status(500).json({ success: false, message: 'Erreur lors de l\'upload des fichiers' });
     }
   }
@@ -76,7 +90,8 @@ router.delete(
 
       res.json({ success: true, message: 'Fichier supprimé avec succès' });
     } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      console.error('Erreur lors de la suppression:', message);
       res.status(500).json({ success: false, message: 'Erreur lors de la suppression du fichier' });
     }
   }
