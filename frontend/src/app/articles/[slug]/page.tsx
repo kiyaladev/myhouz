@@ -222,23 +222,11 @@ export default function ArticleDetailPage() {
 
                   {/* Content */}
                   <div className="prose prose-lg max-w-none">
-                    {contentParagraphs.map((paragraph, idx) => {
-                      if (paragraph.startsWith('Les ') || paragraph.startsWith('Le ') || paragraph.startsWith('L\'') || paragraph.startsWith('Vers ') || paragraph.startsWith('En ')) {
-                        const lines = paragraph.split('\n');
-                        if (lines.length === 1 && paragraph.length < 80) {
-                          return (
-                            <h2 key={idx} className="text-xl font-bold text-gray-900 mt-8 mb-4">
-                              {paragraph}
-                            </h2>
-                          );
-                        }
-                      }
-                      return (
-                        <p key={idx} className="text-gray-700 leading-relaxed mb-4">
-                          {paragraph}
-                        </p>
-                      );
-                    })}
+                    {contentParagraphs.map((paragraph, idx) => (
+                      <p key={idx} className="text-gray-700 leading-relaxed mb-4">
+                        {paragraph}
+                      </p>
+                    ))}
                   </div>
 
                   {/* Tags */}
