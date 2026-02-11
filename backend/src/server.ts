@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import apiRoutes from './routes';
 
@@ -18,6 +20,9 @@ app.use(cors({
   credentials: true
 }));
 
+// Compression des réponses
+app.use(compression());
+
 // Middleware de logging
 app.use(morgan('combined'));
 
@@ -25,7 +30,17 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Rate limiting API
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Trop de requêtes, veuillez réessayer plus tard' }
+});
+
 // Routes API
+app.use('/api', apiLimiter);
 app.use('/api', apiRoutes);
 
 // Routes de base
