@@ -10,6 +10,7 @@ import messageRoutes from './messageRoutes';
 import orderRoutes from './orderRoutes';
 import uploadRoutes from './uploadRoutes';
 import notificationRoutes from './notificationRoutes';
+import searchRoutes from './searchRoutes';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use('/messages', messageRoutes);
 router.use('/orders', orderRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/search', searchRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {
