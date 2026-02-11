@@ -104,6 +104,18 @@ export default function ProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
+  const getPageNumbers = (current: number, total: number): (number | 'ellipsis')[] => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | 'ellipsis')[] = [1];
+    if (current > 3) pages.push('ellipsis');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i);
+    }
+    if (current < total - 2) pages.push('ellipsis');
+    pages.push(total);
+    return pages;
+  };
+
   const categories = [
     { value: '', label: 'Toutes les catégories' },
     { value: 'mobilier', label: 'Mobilier' },
@@ -205,8 +217,8 @@ export default function ProductsPage() {
           ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
-                <Link href={`/products/${product.id}`}>
+              <Link key={product.id} href={`/products/${product.id}`}>
+              <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                 <div className="relative">
                   <img
                     src={product.images[0]}
@@ -226,18 +238,15 @@ export default function ProductsPage() {
                     </svg>
                   </div>
                 </div>
-                </Link>
 
                 <div className="p-6">
                   <div className="mb-2">
                     <span className="text-sm text-emerald-600 font-medium">{product.brand}</span>
                   </div>
                   
-                  <Link href={`/products/${product.id}`}>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-emerald-600">
-                      {product.name}
-                    </h3>
-                  </Link>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {product.name}
+                  </h3>
                   
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                     {product.description}
@@ -277,6 +286,7 @@ export default function ProductsPage() {
                   </Button>
                 </div>
               </Card>
+              </Link>
             ))}
           </div>
           )}
@@ -285,11 +295,15 @@ export default function ProductsPage() {
           <div className="flex justify-center mt-12">
             <div className="flex space-x-2">
               <Button variant="outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Précédent</Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <Button key={p} variant={p === page ? 'default' : 'outline'} onClick={() => setPage(p)}>
-                  {p}
-                </Button>
-              ))}
+              {getPageNumbers(page, totalPages).map((p, i) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${i}`} className="px-3 py-2 text-gray-500">…</span>
+                ) : (
+                  <Button key={p} variant={p === page ? 'default' : 'outline'} onClick={() => setPage(p)}>
+                    {p}
+                  </Button>
+                )
+              )}
               <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Suivant</Button>
             </div>
           </div>

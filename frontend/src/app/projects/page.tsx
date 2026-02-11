@@ -121,6 +121,18 @@ export default function ProjectsPage() {
     fetchProjects();
   }, [fetchProjects]);
 
+  const getPageNumbers = (current: number, total: number): (number | 'ellipsis')[] => {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | 'ellipsis')[] = [1];
+    if (current > 3) pages.push('ellipsis');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i);
+    }
+    if (current < total - 2) pages.push('ellipsis');
+    pages.push(total);
+    return pages;
+  };
+
   const categories = [
     { value: 'all', label: 'Toutes les catégories' },
     { value: 'renovation', label: 'Rénovation' },
@@ -320,11 +332,15 @@ export default function ProjectsPage() {
           <div className="flex justify-center mt-12">
             <div className="flex space-x-2">
               <Button variant="outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Précédent</Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <Button key={p} variant={p === page ? 'default' : 'outline'} onClick={() => setPage(p)}>
-                  {p}
-                </Button>
-              ))}
+              {getPageNumbers(page, totalPages).map((p, i) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${i}`} className="px-3 py-2 text-gray-500">…</span>
+                ) : (
+                  <Button key={p} variant={p === page ? 'default' : 'outline'} onClick={() => setPage(p)}>
+                    {p}
+                  </Button>
+                )
+              )}
               <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Suivant</Button>
             </div>
           </div>
