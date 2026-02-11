@@ -9,6 +9,8 @@ export { default as Order } from './Order';
 export { default as Article } from './Article';
 export { ForumPost, ForumReply } from './Forum';
 export { default as Notification } from './Notification';
+export { default as Cart } from './Cart';
+export { default as ArticleComment } from './ArticleComment';
 
 // Export interfaces
 export type { IUser } from './User';
@@ -21,3 +23,5 @@ export type { IOrder } from './Order';
 export type { IArticle } from './Article';
 export type { IForumPost, IForumReply } from './Forum';
 export type { INotification } from './Notification';
+export type { ICart, ICartItem } from './Cart';
+export type { IArticleComment } from './ArticleComment';

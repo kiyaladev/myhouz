@@ -1,13 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Heart, Bookmark, Expand, MessageCircle } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
+import Lightbox from '../../../components/ui/lightbox';
+import SaveToIdeabookModal from '../../../components/SaveToIdeabookModal';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface ProjectDetail {
   _id: string;
@@ -71,9 +75,14 @@ const mockProject: ProjectDetail = {
 
 export default function ProjectDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -92,6 +101,43 @@ export default function ProjectDetailPage() {
 
     fetchProject();
   }, [params.id]);
+
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    try {
+      await api.post(`/projects/${params.id}/like`);
+      setIsLiked(!isLiked);
+      if (project) {
+        setProject({
+          ...project,
+          likes: isLiked ? project.likes - 1 : project.likes + 1
+        });
+      }
+    } catch {
+      // Ignore error
+    }
+  };
+
+  const handleSaveToIdeabook = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    setIsSaveModalOpen(true);
+  };
+
+  const handleContactProfessional = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    if (project?.professional?._id) {
+      router.push(`/messages?to=${project.professional._id}`);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -122,6 +168,22 @@ export default function ProjectDetailPage() {
   return (
     <Layout>
       <div className="bg-gray-50 min-h-screen">
+        {/* Lightbox */}
+        <Lightbox
+          images={project.images}
+          initialIndex={selectedImage}
+          isOpen={isLightboxOpen}
+          onClose={() => setIsLightboxOpen(false)}
+        />
+
+        {/* Save to Ideabook Modal */}
+        <SaveToIdeabookModal
+          isOpen={isSaveModalOpen}
+          onClose={() => setIsSaveModalOpen(false)}
+          itemType="project"
+          itemId={project._id}
+        />
+
         {/* Breadcrumb */}
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -141,12 +203,41 @@ export default function ProjectDetailPage() {
             <div className="lg:col-span-2">
               {/* Image Gallery */}
               <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-                <div className="relative">
+                <div className="relative group">
                   <img
                     src={project.images[selectedImage]?.url || project.images[0]?.url}
                     alt={project.images[selectedImage]?.caption || project.title}
-                    className="w-full h-96 object-cover"
+                    className="w-full h-96 object-cover cursor-pointer"
+                    onClick={() => setIsLightboxOpen(true)}
                   />
+                  {/* Image overlay actions */}
+                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setIsLightboxOpen(true)}
+                      className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                      title="Plein écran"
+                    >
+                      <Expand className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={handleLike}
+                      className={`p-2 rounded-full transition-colors ${
+                        isLiked 
+                          ? 'bg-red-500 text-white' 
+                          : 'bg-black/50 hover:bg-black/70 text-white'
+                      }`}
+                      title="J'aime"
+                    >
+                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                    </button>
+                    <button
+                      onClick={handleSaveToIdeabook}
+                      className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                      title="Sauvegarder"
+                    >
+                      <Bookmark className="w-5 h-5" />
+                    </button>
+                  </div>
                   {project.images.length > 1 && (
                     <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
                       {selectedImage + 1} / {project.images.length}
@@ -271,9 +362,38 @@ export default function ProjectDetailPage() {
                   <Link href={`/professionals/${project.professional._id}`}>
                     <Button className="w-full mb-2">Voir le profil</Button>
                   </Link>
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={handleContactProfessional}
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
                     Contacter
                   </Button>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <div className="flex gap-2">
+                    <Button
+                      variant={isLiked ? 'default' : 'outline'}
+                      className={`flex-1 ${isLiked ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                      onClick={handleLike}
+                    >
+                      <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+                      {isLiked ? 'Aimé' : 'Aimer'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleSaveToIdeabook}
+                    >
+                      <Bookmark className="w-4 h-4 mr-2" />
+                      Sauvegarder
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
