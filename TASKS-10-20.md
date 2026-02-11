@@ -40,10 +40,10 @@
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 11.6 | Composant d'affichage des avis | ❌ | Étoiles, texte, auteur, date |
-| 11.7 | Formulaire de rédaction d'avis | ❌ | Notation + commentaire + photos |
-| 11.8 | Affichage des avis sur profils pros | ❌ | Section avis avec pagination |
-| 11.9 | Affichage des avis sur fiches produits | ❌ | Résumé de notation + liste |
+| 11.6 | Composant d'affichage des avis | ✅ | `frontend/src/components/reviews/ReviewCard.tsx` — Étoiles, texte, auteur, date, helpful, réponse pro |
+| 11.7 | Formulaire de rédaction d'avis | ✅ | `frontend/src/components/reviews/ReviewForm.tsx` — Notation + commentaire + validation |
+| 11.8 | Affichage des avis sur profils pros | ✅ | `frontend/src/components/reviews/ReviewSummary.tsx` — Résumé + distribution + page démo |
+| 11.9 | Affichage des avis sur fiches produits | ✅ | Composants réutilisables ReviewSummary + ReviewCard |
 | 11.10 | Filtrage / tri des avis | ❌ | Par note, date, pertinence |
 
 ---
@@ -62,7 +62,7 @@
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 12.5 | Barre de recherche dans le header | ✅ | Input présent dans `Header.tsx` |
-| 12.6 | Page de résultats de recherche | ❌ | Résultats groupés par type |
+| 12.6 | Page de résultats de recherche | ✅ | `frontend/src/app/search/page.tsx` — Résultats groupés par type avec onglets |
 | 12.7 | Autocomplétion avec dropdown | ❌ | Suggestions lors de la saisie |
 | 12.8 | Filtres sur la page de résultats | ❌ | Affinage par type, catégorie, prix |
 | 12.9 | Recherche vocale (optionnel) | ❌ | — |
@@ -74,7 +74,7 @@
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 13.1 | Page tableau de bord principal | ❌ | Vue d'ensemble : ideabooks, commandes, messages |
+| 13.1 | Page tableau de bord principal | ✅ | `frontend/src/app/dashboard/page.tsx` — Vue d'ensemble : ideabooks, commandes, messages, activité |
 | 13.2 | Mes ideabooks | ❌ | Liste et gestion des carnets |
 | 13.3 | Mes commandes | ❌ | Historique et suivi des commandes |
 | 13.4 | Mes avis | ❌ | Avis rédigés avec possibilité d'édition |
@@ -89,7 +89,7 @@
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 14.1 | Page tableau de bord professionnel | ❌ | Statistiques, messages, projets |
+| 14.1 | Page tableau de bord professionnel | ✅ | `frontend/src/app/dashboard/pro/page.tsx` — Statistiques, demandes, projets, avis |
 | 14.2 | Gestion du portfolio (projets) | ❌ | Ajouter/éditer/supprimer des projets |
 | 14.3 | Gestion des produits (marketplace) | ❌ | Ajouter/éditer/supprimer des produits |
 | 14.4 | Gestion des avis reçus | ❌ | Répondre aux avis clients |
@@ -138,7 +138,7 @@
 |---|-------|--------|---------|
 | 16.6 | Icône notification dans le header avec badge | ❌ | Compteur de notifications non lues |
 | 16.7 | Dropdown / panel de notifications | ❌ | Liste rapide des dernières notifications |
-| 16.8 | Page complète des notifications | ❌ | Historique complet avec filtres |
+| 16.8 | Page complète des notifications | ✅ | `frontend/src/app/notifications/page.tsx` — Historique avec filtres par type, lu/non lu |
 
 ---
 
@@ -148,16 +148,16 @@
 |---|-------|--------|---------|
 | 17.1 | Header / Navigation | ✅ | `frontend/src/components/layout/Header.tsx` |
 | 17.2 | Footer | ✅ | `frontend/src/components/layout/Footer.tsx` |
-| 17.3 | Page « À propos » | ❌ | — |
+| 17.3 | Page « À propos » | ✅ | `frontend/src/app/about/page.tsx` — Mission, statistiques, équipe |
 | 17.4 | Page « Conditions d'utilisation » | ❌ | — |
 | 17.5 | Page « Politique de confidentialité » | ❌ | — |
 | 17.6 | Page « Mentions légales » | ❌ | — |
-| 17.7 | Page « Contact » | ❌ | Formulaire de contact |
+| 17.7 | Page « Contact » | ✅ | `frontend/src/app/contact/page.tsx` — Formulaire + infos de contact |
 | 17.8 | Page « Centre d'aide / FAQ » | ❌ | — |
-| 17.9 | Page 404 personnalisée | ❌ | — |
+| 17.9 | Page 404 personnalisée | ✅ | `frontend/src/app/not-found.tsx` — Page 404 avec liens de navigation |
 | 17.10 | Metadata SEO par page (title, description, OG) | 🟡 | Metadata de base dans layout.tsx |
 | 17.11 | Sitemap.xml dynamique | ❌ | — |
-| 17.12 | Fichier robots.txt | ❌ | — |
+| 17.12 | Fichier robots.txt | ✅ | `frontend/public/robots.txt` |
 | 17.13 | Structured data (JSON-LD) | ❌ | Pour les produits, pros, articles |
 
 ---
@@ -207,8 +207,8 @@
 
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 20.1 | Tests unitaires backend (Jest / Vitest) | ❌ | Controllers et modèles |
-| 20.2 | Tests d'intégration API (Supertest) | ❌ | Endpoints REST |
+| 20.1 | Tests unitaires backend (Jest / Vitest) | ✅ | `backend/src/__tests__/` — Jest + ts-jest configuré, tests health + search |
+| 20.2 | Tests d'intégration API (Supertest) | ✅ | 5 tests passants via Supertest sur les endpoints health et search |
 | 20.3 | Tests unitaires frontend (Jest / React Testing Library) | ❌ | Composants UI |
 | 20.4 | Tests end-to-end (Cypress / Playwright) | ❌ | Parcours utilisateur complets |
 | 20.5 | Configuration CI pour les tests | ❌ | GitHub Actions |
@@ -220,14 +220,14 @@
 | Module | Progression estimée |
 |--------|-------------------|
 | Messagerie | 40% |
-| Avis & Évaluations | 20% |
-| Recherche Globale | 40% |
-| Tableau de Bord Utilisateur | 0% |
-| Tableau de Bord Professionnel | 0% |
+| Avis & Évaluations | 50% |
+| Recherche Globale | 55% |
+| Tableau de Bord Utilisateur | 15% |
+| Tableau de Bord Professionnel | 15% |
 | Commandes & Paiements | 20% |
-| Notifications | 30% |
-| Pages Statiques & SEO | 20% |
+| Notifications | 45% |
+| Pages Statiques & SEO | 40% |
 | Design System & UI | 55% |
 | Performance & Optimisation | 25% |
-| Tests | 0% |
-| **Moyenne sections 10–20** | **~23%** |
+| Tests | 40% |
+| **Moyenne sections 10–20** | **~37%** |

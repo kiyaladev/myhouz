@@ -18,6 +18,11 @@ interface SearchResults {
 }
 
 export class SearchController {
+  // Escape special regex characters to prevent ReDoS
+  private static escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   // Global search across multiple entities
   static async globalSearch(req: Request, res: Response): Promise<void> {
     try {
@@ -34,7 +39,7 @@ export class SearchController {
       const skip = (pageNum - 1) * limitNum;
 
       const results: SearchResults = {};
-      const searchRegex = new RegExp(query, 'i');
+      const searchRegex = new RegExp(SearchController.escapeRegex(query), 'i');
 
       const searchType = type as string;
 
@@ -161,7 +166,7 @@ export class SearchController {
         return;
       }
 
-      const searchRegex = new RegExp(q.trim(), 'i');
+      const searchRegex = new RegExp(SearchController.escapeRegex(q.trim()), 'i');
 
       const [projects, products, professionals] = await Promise.all([
         Project.find({ title: searchRegex, status: 'published' }).select('title').limit(3),
