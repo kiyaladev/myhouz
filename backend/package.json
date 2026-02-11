@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "test": "jest --forceExit --detectOpenHandles"
   },
   "keywords": [
     "express",
@@ -44,12 +45,17 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/express-fileupload": "^1.4.4",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/minio": "^7.1.0",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.10.5",
     "@types/nodemailer": "^6.4.14",
+    "@types/supertest": "^6.0.3",
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
   }
