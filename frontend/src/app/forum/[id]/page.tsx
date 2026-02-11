@@ -117,6 +117,7 @@ export default function ForumDiscussionPage() {
   const [discussion, setDiscussion] = useState<DiscussionDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [replyContent, setReplyContent] = useState('');
+  const [replyError, setReplyError] = useState('');
 
   useEffect(() => {
     const fetchDiscussion = async () => {
@@ -140,6 +141,7 @@ export default function ForumDiscussionPage() {
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyContent.trim()) return;
+    setReplyError('');
     try {
       const response = await api.post(`/forum/${params.id}/replies`, { content: replyContent });
       if (response.success && response.data) {
@@ -150,8 +152,8 @@ export default function ForumDiscussionPage() {
         } : prev);
       }
       setReplyContent('');
-    } catch (error) {
-      console.error('Erreur lors de la publication:', error);
+    } catch {
+      setReplyError('Erreur lors de la publication de votre réponse. Veuillez réessayer.');
     }
   };
 
@@ -336,6 +338,11 @@ export default function ForumDiscussionPage() {
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Répondre</h3>
               <form onSubmit={handleSubmitReply}>
+                {replyError && (
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                    {replyError}
+                  </div>
+                )}
                 <textarea
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}

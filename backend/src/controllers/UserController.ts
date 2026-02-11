@@ -324,7 +324,7 @@ export class UserController {
       const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
       user.resetPasswordToken = hashedToken;
-      user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 heure
+      user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
       await user.save();
 
       res.json({
@@ -391,8 +391,9 @@ export class UserController {
         return;
       }
 
-      const safeName = req.file.filename || req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const fileUrl = `/uploads/avatars/${safeName}`;
+      const ext = (req.file.originalname.match(/\.(jpg|jpeg|png|webp)$/i) || ['.bin'])[0];
+      const uniqueName = `${crypto.randomBytes(16).toString('hex')}${ext}`;
+      const fileUrl = `/uploads/avatars/${uniqueName}`;
 
       const user = await User.findByIdAndUpdate(
         userId,
