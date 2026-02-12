@@ -9,7 +9,7 @@ export class ReturnController {
   static async createReturn(req: Request, res: Response): Promise<void> {
     try {
       const sellerId = req.user!.userId;
-      const { saleId, items, resolution, customer, notes } = req.body;
+      const { saleId, items, resolution, customer, notes, taxRate = 0.20 } = req.body;
 
       if (!items || !Array.isArray(items) || items.length === 0) {
         res.status(400).json({ success: false, message: 'Le retour doit contenir au moins un article' });
@@ -46,7 +46,7 @@ export class ReturnController {
         });
       }
 
-      const tax = subtotal * 0.20;
+      const tax = subtotal * taxRate;
       const total = subtotal + tax;
       const returnNumber = `RET-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
