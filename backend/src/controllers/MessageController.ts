@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Message, Conversation } from '../models/Message';
 import User from '../models/User';
 import { NotificationService } from '../services/notificationService';
+import { emitNewMessage, emitMessageUpdated, emitMessageDeleted } from '../services/socketService';
 
 export class MessageController {
   // Créer une nouvelle conversation
@@ -257,16 +258,21 @@ export class MessageController {
       await message.populate('sender', 'firstName lastName avatar');
 
       // Notify other participants
+      const recipients = conversation.participants.filter(
+        (p: any) => p.toString() !== req.user?.userId
+      );
+      const recipientIds = recipients.map((p: any) => p.toString());
+
+      // Emit real-time event via Socket.io
+      emitNewMessage(conversationId, message, recipientIds);
+
       try {
         const sender = await User.findById(req.user?.userId).select('firstName lastName');
         if (sender) {
           const senderName = `${sender.firstName} ${sender.lastName}`;
-          const recipients = conversation.participants.filter(
-            (p: any) => p.toString() !== req.user?.userId
-          );
-          for (const recipientId of recipients) {
+          for (const recipientId of recipientIds) {
             NotificationService.onNewMessage(
-              recipientId.toString(), req.user?.userId as string,
+              recipientId, req.user?.userId as string,
               senderName, content, conversationId
             ).catch(() => {});
           }
@@ -317,6 +323,9 @@ export class MessageController {
       message.editedAt = new Date();
       await message.save();
 
+      // Emit real-time update
+      emitMessageUpdated(message.conversation.toString(), message);
+
       res.json({
         success: true,
         message: 'Message mis à jour avec succès',
@@ -355,7 +364,11 @@ export class MessageController {
         return;
       }
 
+      const conversationId = message.conversation.toString();
       await Message.findByIdAndDelete(messageId);
+
+      // Emit real-time deletion
+      emitMessageDeleted(conversationId, messageId);
 
       res.json({
         success: true,
