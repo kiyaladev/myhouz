@@ -1,155 +1,198 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Layout from '../../components/layout/Layout';
-import { Card, CardContent } from '../../components/ui/card';
+import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { EmptyState } from '../../components/ui/empty-state';
-import { Search, Send, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Search, Send, MessageCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { api } from '../../lib/api';
 
-interface Message {
-  id: string;
-  senderId: string;
-  text: string;
-  timestamp: string;
-  isOwn: boolean;
+interface Participant {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+  userType?: string;
 }
 
-interface Conversation {
-  id: string;
-  userName: string;
-  userInitials: string;
-  lastMessage: string;
-  timestamp: string;
-  unreadCount: number;
-  messages: Message[];
+interface MessageData {
+  _id: string;
+  sender: Participant;
+  content: string;
+  createdAt: string;
+  edited?: boolean;
+  attachments?: { type: string; url: string; name: string }[];
 }
 
-const mockConversations: Conversation[] = [
-  {
-    id: 'conv1',
-    userName: 'Sophie Dubois',
-    userInitials: 'SD',
-    lastMessage: 'Bonjour, je suis disponible pour un rendez-vous la semaine prochaine.',
-    timestamp: '10:32',
-    unreadCount: 2,
-    messages: [
-      { id: 'm1', senderId: 'other', text: 'Bonjour, j\'aimerais discuter de mon projet de rénovation.', timestamp: '09:15', isOwn: false },
-      { id: 'm2', senderId: 'me', text: 'Bien sûr ! Pouvez-vous me donner plus de détails sur votre projet ?', timestamp: '09:20', isOwn: true },
-      { id: 'm3', senderId: 'other', text: 'Il s\'agit d\'une rénovation complète de ma cuisine, environ 15m².', timestamp: '09:45', isOwn: false },
-      { id: 'm4', senderId: 'me', text: 'D\'accord, je peux vous proposer un devis. Quand seriez-vous disponible pour une visite ?', timestamp: '10:00', isOwn: true },
-      { id: 'm5', senderId: 'other', text: 'Bonjour, je suis disponible pour un rendez-vous la semaine prochaine.', timestamp: '10:32', isOwn: false },
-    ],
-  },
-  {
-    id: 'conv2',
-    userName: 'Pierre Martin',
-    userInitials: 'PM',
-    lastMessage: 'Merci pour le devis, je reviens vers vous rapidement.',
-    timestamp: '09:15',
-    unreadCount: 0,
-    messages: [
-      { id: 'm1', senderId: 'me', text: 'Bonjour Pierre, voici le devis pour les travaux de plomberie.', timestamp: '08:30', isOwn: true },
-      { id: 'm2', senderId: 'other', text: 'Merci pour le devis, je reviens vers vous rapidement.', timestamp: '09:15', isOwn: false },
-    ],
-  },
-  {
-    id: 'conv3',
-    userName: 'Marie Larsson',
-    userInitials: 'ML',
-    lastMessage: 'Les plans sont prêts, je vous les envoie ce soir.',
-    timestamp: 'Hier',
-    unreadCount: 1,
-    messages: [
-      { id: 'm1', senderId: 'other', text: 'J\'ai bien reçu les photos de votre jardin.', timestamp: 'Hier 14:00', isOwn: false },
-      { id: 'm2', senderId: 'me', text: 'Super, quand pensez-vous avoir les plans ?', timestamp: 'Hier 14:30', isOwn: true },
-      { id: 'm3', senderId: 'other', text: 'Les plans sont prêts, je vous les envoie ce soir.', timestamp: 'Hier 18:45', isOwn: false },
-    ],
-  },
-  {
-    id: 'conv4',
-    userName: 'Thomas Bernard',
-    userInitials: 'TB',
-    lastMessage: 'Parfait, à lundi alors !',
-    timestamp: 'Hier',
-    unreadCount: 0,
-    messages: [
-      { id: 'm1', senderId: 'me', text: 'Bonjour Thomas, pouvons-nous planifier l\'installation de la cuisine ?', timestamp: 'Hier 10:00', isOwn: true },
-      { id: 'm2', senderId: 'other', text: 'Oui, lundi prochain vous conviendrait ?', timestamp: 'Hier 11:00', isOwn: false },
-      { id: 'm3', senderId: 'me', text: 'Parfait, à lundi alors !', timestamp: 'Hier 11:15', isOwn: true },
-    ],
-  },
-  {
-    id: 'conv5',
-    userName: 'Camille Rousseau',
-    userInitials: 'CR',
-    lastMessage: 'Je vous envoie les échantillons de carrelage demain.',
-    timestamp: 'Lun.',
-    unreadCount: 3,
-    messages: [
-      { id: 'm1', senderId: 'other', text: 'Bonjour, suite à notre discussion sur la salle de bain...', timestamp: 'Lun. 09:00', isOwn: false },
-      { id: 'm2', senderId: 'me', text: 'Oui, avez-vous trouvé les carreaux dont nous avions parlé ?', timestamp: 'Lun. 10:00', isOwn: true },
-      { id: 'm3', senderId: 'other', text: 'Oui ! J\'ai trouvé plusieurs modèles qui pourraient vous plaire.', timestamp: 'Lun. 14:00', isOwn: false },
-      { id: 'm4', senderId: 'other', text: 'Je vous envoie les photos pour que vous puissiez choisir.', timestamp: 'Lun. 14:02', isOwn: false },
-      { id: 'm5', senderId: 'other', text: 'Je vous envoie les échantillons de carrelage demain.', timestamp: 'Lun. 16:30', isOwn: false },
-    ],
-  },
-  {
-    id: 'conv6',
-    userName: 'Antoine Lefèvre',
-    userInitials: 'AL',
-    lastMessage: 'Le chantier avance bien, voici les photos du jour.',
-    timestamp: 'Dim.',
-    unreadCount: 0,
-    messages: [
-      { id: 'm1', senderId: 'other', text: 'Les travaux de peinture commencent demain matin.', timestamp: 'Sam. 17:00', isOwn: false },
-      { id: 'm2', senderId: 'me', text: 'Très bien, quelle couleur avez-vous choisie pour le salon ?', timestamp: 'Sam. 17:30', isOwn: true },
-      { id: 'm3', senderId: 'other', text: 'Le blanc cassé comme convenu, avec l\'accent vert sauge sur le mur principal.', timestamp: 'Sam. 18:00', isOwn: false },
-      { id: 'm4', senderId: 'other', text: 'Le chantier avance bien, voici les photos du jour.', timestamp: 'Dim. 16:00', isOwn: false },
-    ],
-  },
-  {
-    id: 'conv7',
-    userName: 'Isabelle Moreau',
-    userInitials: 'IM',
-    lastMessage: 'Pouvez-vous me rappeler demain matin ?',
-    timestamp: '23 mai',
-    unreadCount: 1,
-    messages: [
-      { id: 'm1', senderId: 'other', text: 'Bonjour, j\'aurais besoin de conseils pour l\'aménagement de ma terrasse.', timestamp: '23 mai 09:00', isOwn: false },
-      { id: 'm2', senderId: 'me', text: 'Avec plaisir ! Quelle est la superficie de votre terrasse ?', timestamp: '23 mai 09:30', isOwn: true },
-      { id: 'm3', senderId: 'other', text: 'Environ 25m². Pouvez-vous me rappeler demain matin ?', timestamp: '23 mai 10:00', isOwn: false },
-    ],
-  },
-];
+interface ConversationData {
+  _id: string;
+  participants: Participant[];
+  subject: string;
+  lastMessage?: { content: string; sender: { firstName: string; lastName: string }; createdAt: string };
+  lastActivity: string;
+  status: string;
+}
+
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
+}
+
+function formatTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'À l\'instant';
+  if (diffMin < 60) return `Il y a ${diffMin} min`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `Il y a ${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'Hier';
+  if (diffDays < 7) return `Il y a ${diffDays}j`;
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
 
 export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [conversations, setConversations] = useState<ConversationData[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<MessageData[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Get current user ID from token
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(payload.userId || payload.id || payload.sub);
+      }
+    } catch { /* not logged in */ }
+  }, []);
+
+  // Load conversations
+  const loadConversations = useCallback(async () => {
+    try {
+      const res = await api.get<ConversationData[]>('/messages/conversations');
+      if (res.success && res.data) {
+        setConversations(res.data);
+      }
+    } catch {
+      // API unavailable - keep current state
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  // Poll for new conversations every 15s
+  useEffect(() => {
+    const interval = setInterval(loadConversations, 15000);
+    return () => clearInterval(interval);
+  }, [loadConversations]);
+
+  // Load messages when conversation is selected
+  const loadMessages = useCallback(async (conversationId: string) => {
+    setLoadingMessages(true);
+    try {
+      const res = await api.get<{ conversation: ConversationData; messages: MessageData[] }>(
+        `/messages/conversations/${conversationId}`
+      );
+      if (res.success && res.data) {
+        setMessages(res.data.messages);
+      }
+    } catch {
+      setMessages([]);
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedConversationId) {
+      loadMessages(selectedConversationId);
+    }
+  }, [selectedConversationId, loadMessages]);
+
+  // Poll for new messages every 5s when a conversation is selected
+  useEffect(() => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    if (selectedConversationId) {
+      pollRef.current = setInterval(() => {
+        loadMessages(selectedConversationId);
+      }, 5000);
+    }
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [selectedConversationId, loadMessages]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return mockConversations;
+    if (!searchQuery.trim()) return conversations;
     const query = searchQuery.toLowerCase();
-    return mockConversations.filter(
-      (c) =>
-        c.userName.toLowerCase().includes(query) ||
-        c.lastMessage.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
+    return conversations.filter((c) => {
+      const otherParticipant = c.participants.find((p) => p._id !== currentUserId);
+      const name = otherParticipant
+        ? `${otherParticipant.firstName} ${otherParticipant.lastName}`.toLowerCase()
+        : '';
+      return (
+        name.includes(query) ||
+        c.subject?.toLowerCase().includes(query) ||
+        c.lastMessage?.content?.toLowerCase().includes(query)
+      );
+    });
+  }, [searchQuery, conversations, currentUserId]);
 
   const selectedConversation = useMemo(
-    () => mockConversations.find((c) => c.id === selectedConversationId) ?? null,
-    [selectedConversationId]
+    () => conversations.find((c) => c._id === selectedConversationId) ?? null,
+    [selectedConversationId, conversations]
   );
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const getOtherParticipant = (conversation: ConversationData): Participant | undefined => {
+    return conversation.participants.find((p) => p._id !== currentUserId);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
-    // In a real app, this would send the message to the API
-    setNewMessage('');
+    if (!newMessage.trim() || !selectedConversationId || sending) return;
+
+    setSending(true);
+    try {
+      const res = await api.post<MessageData>(`/messages/conversations/${selectedConversationId}/messages`, {
+        content: newMessage.trim(),
+      });
+      if (res.success && res.data) {
+        setMessages((prev) => [...prev, res.data!]);
+        setNewMessage('');
+        loadConversations();
+      }
+    } catch {
+      // Could show error toast
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSelectConversation = (id: string) => {
+    setSelectedConversationId(id);
+    api.put(`/messages/conversations/${id}/read`).catch(() => {});
   };
 
   return (
@@ -159,7 +202,7 @@ export default function MessagesPage() {
 
         <Card className="overflow-hidden">
           <div className="flex h-[600px]">
-            {/* Conversation list - hidden on mobile when a conversation is selected */}
+            {/* Conversation list */}
             <div
               className={`w-full md:w-96 md:min-w-[24rem] border-r border-gray-200 flex flex-col ${
                 selectedConversationId ? 'hidden md:flex' : 'flex'
@@ -180,51 +223,50 @@ export default function MessagesPage() {
 
               {/* Conversation list */}
               <div className="flex-1 overflow-y-auto">
-                {filteredConversations.length === 0 ? (
+                {loading ? (
+                  <div className="flex items-center justify-center h-40">
+                    <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+                  </div>
+                ) : filteredConversations.length === 0 ? (
                   <EmptyState
-                    icon={<Search className="h-8 w-8" />}
-                    title="Aucune conversation trouvée"
-                    description="Essayez avec d'autres termes de recherche."
+                    icon={<MessageCircle className="h-8 w-8" />}
+                    title={searchQuery ? 'Aucune conversation trouvée' : 'Aucune conversation'}
+                    description={searchQuery ? 'Essayez avec d\'autres termes.' : 'Contactez un professionnel pour démarrer une conversation.'}
                   />
                 ) : (
-                  filteredConversations.map((conversation) => (
-                    <button
-                      key={conversation.id}
-                      onClick={() => setSelectedConversationId(conversation.id)}
-                      className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors flex items-start gap-3 ${
-                        selectedConversationId === conversation.id
-                          ? 'bg-emerald-50 border-l-2 border-l-emerald-600'
-                          : ''
-                      }`}
-                    >
-                      {/* Avatar */}
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
-                        {conversation.userInitials}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-sm text-gray-900 truncate">
-                            {conversation.userName}
-                          </span>
-                          <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                            {conversation.timestamp}
-                          </span>
+                  filteredConversations.map((conversation) => {
+                    const other = getOtherParticipant(conversation);
+                    const name = other ? `${other.firstName} ${other.lastName}` : 'Utilisateur';
+                    const initials = other ? getInitials(other.firstName, other.lastName) : '?';
+                    return (
+                      <button
+                        key={conversation._id}
+                        onClick={() => handleSelectConversation(conversation._id)}
+                        className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors flex items-start gap-3 ${
+                          selectedConversationId === conversation._id
+                            ? 'bg-emerald-50 border-l-2 border-l-emerald-600'
+                            : ''
+                        }`}
+                      >
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
+                          {initials}
                         </div>
-                        <p className="text-sm text-gray-500 truncate mt-0.5">
-                          {conversation.lastMessage}
-                        </p>
-                      </div>
-
-                      {/* Unread badge */}
-                      {conversation.unreadCount > 0 && (
-                        <Badge className="bg-emerald-600 text-white hover:bg-emerald-600 flex-shrink-0">
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
-                    </button>
-                  ))
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-sm text-gray-900 truncate">
+                              {name}
+                            </span>
+                            <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                              {formatTime(conversation.lastActivity)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 truncate mt-0.5">
+                            {conversation.lastMessage?.content || conversation.subject}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -247,39 +289,70 @@ export default function MessagesPage() {
                     >
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <div className="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
-                      {selectedConversation.userInitials}
-                    </div>
-                    <span className="font-semibold text-gray-900">
-                      {selectedConversation.userName}
-                    </span>
+                    {(() => {
+                      const other = getOtherParticipant(selectedConversation);
+                      return (
+                        <>
+                          <div className="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
+                            {other ? getInitials(other.firstName, other.lastName) : '?'}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-900">
+                              {other ? `${other.firstName} ${other.lastName}` : 'Utilisateur'}
+                            </span>
+                            {other?.userType && (
+                              <Badge className="ml-2 text-xs" variant="secondary">
+                                {other.userType === 'professionnel' ? 'Pro' : 'Particulier'}
+                              </Badge>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {selectedConversation.messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-                            message.isOwn
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-gray-100 text-gray-900'
-                          }`}
-                        >
-                          <p>{message.text}</p>
-                          <p
-                            className={`text-xs mt-1 ${
-                              message.isOwn ? 'text-emerald-100' : 'text-gray-400'
-                            }`}
-                          >
-                            {message.timestamp}
-                          </p>
-                        </div>
+                    {loadingMessages ? (
+                      <div className="flex items-center justify-center h-40">
+                        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
                       </div>
-                    ))}
+                    ) : messages.length === 0 ? (
+                      <EmptyState
+                        icon={<MessageCircle className="h-8 w-8" />}
+                        title="Aucun message"
+                        description="Envoyez le premier message pour démarrer la conversation."
+                      />
+                    ) : (
+                      messages.map((message) => {
+                        const isOwn = message.sender._id === currentUserId;
+                        return (
+                          <div
+                            key={message._id}
+                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div
+                              className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+                                isOwn
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-gray-100 text-gray-900'
+                              }`}
+                            >
+                              <p>{message.content}</p>
+                              <p
+                                className={`text-xs mt-1 ${
+                                  isOwn ? 'text-emerald-100' : 'text-gray-400'
+                                }`}
+                              >
+                                {formatTime(message.createdAt)}
+                                {message.edited && ' (modifié)'}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Message input */}
@@ -292,9 +365,19 @@ export default function MessagesPage() {
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       className="flex-1"
+                      disabled={sending}
                     />
-                    <Button type="submit" size="icon" className="bg-emerald-600 hover:bg-emerald-700">
-                      <Send className="h-4 w-4" />
+                    <Button
+                      type="submit"
+                      size="icon"
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      disabled={sending || !newMessage.trim()}
+                    >
+                      {sending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
                     </Button>
                   </form>
                 </>

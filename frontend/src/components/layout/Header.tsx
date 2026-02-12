@@ -7,14 +7,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { Bell, Search, FolderOpen, ShoppingBag, ShoppingCart, Users, MessageCircle, X } from 'lucide-react';
 
-// Mock notifications for demo (will be replaced by API calls)
-const mockNotifications = [
-  { id: '1', type: 'message', title: 'Nouveau message', description: 'Pierre Durand vous a envoyé un message', read: false, createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), link: '/messages' },
-  { id: '2', type: 'review', title: 'Nouvel avis', description: 'Un client a laissé un avis sur votre profil', read: false, createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), link: '/reviews' },
-  { id: '3', type: 'project', title: 'Projet mis à jour', description: 'Votre projet « Cuisine moderne » a été publié', read: true, createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), link: '/projects' },
-  { id: '4', type: 'system', title: 'Bienvenue sur MyHouz', description: 'Complétez votre profil pour commencer', read: true, createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), link: '/profile/edit' },
-];
-
 interface Suggestion {
   type: string;
   text: string;
@@ -46,9 +38,44 @@ export default function Header() {
 
   // Notification state
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<Array<{
+    id: string; type: string; title: string; description: string;
+    read: boolean; createdAt: string; link: string;
+  }>>([]);
   const notifRef = useRef<HTMLDivElement>(null);
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Load notifications from API
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const loadNotifications = async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch(`${API_URL}/notifications?limit=10`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setNotifications(data.data.map((n: any) => ({
+            id: n._id,
+            type: n.type,
+            title: n.title,
+            description: n.content,
+            read: n.read,
+            createdAt: n.createdAt,
+            link: n.link || '/notifications',
+          })));
+        }
+      } catch {
+        // API unavailable - keep empty state
+      }
+    };
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   // Search autocomplete state
   const [searchQuery, setSearchQuery] = useState('');
@@ -133,10 +160,27 @@ export default function Header() {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
+    // Call API to mark as read
+    const token = localStorage.getItem('token');
+    if (token) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      fetch(`${API_URL}/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
   };
 
   const markAllNotificationsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    const token = localStorage.getItem('token');
+    if (token) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      fetch(`${API_URL}/notifications/read-all`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
   };
 
   return (

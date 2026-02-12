@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Message, Conversation } from '../models/Message';
+import User from '../models/User';
+import { NotificationService } from '../services/notificationService';
 
 export class MessageController {
   // Créer une nouvelle conversation
@@ -48,6 +50,18 @@ export class MessageController {
       // Populer pour la réponse
       await conversation.populate('participants', 'firstName lastName avatar');
       await message.populate('sender', 'firstName lastName avatar');
+
+      // Notify participant
+      try {
+        const sender = await User.findById(req.user?.userId).select('firstName lastName');
+        if (sender) {
+          const senderName = `${sender.firstName} ${sender.lastName}`;
+          NotificationService.onNewConversation(
+            participantId, req.user?.userId as string, senderName, subject,
+            (conversation._id as mongoose.Types.ObjectId).toString()
+          ).catch(() => {});
+        }
+      } catch { /* non-critical */ }
 
       res.status(201).json({
         success: true,
@@ -241,6 +255,23 @@ export class MessageController {
 
       // Populer pour la réponse
       await message.populate('sender', 'firstName lastName avatar');
+
+      // Notify other participants
+      try {
+        const sender = await User.findById(req.user?.userId).select('firstName lastName');
+        if (sender) {
+          const senderName = `${sender.firstName} ${sender.lastName}`;
+          const recipients = conversation.participants.filter(
+            (p: any) => p.toString() !== req.user?.userId
+          );
+          for (const recipientId of recipients) {
+            NotificationService.onNewMessage(
+              recipientId.toString(), req.user?.userId as string,
+              senderName, content, conversationId
+            ).catch(() => {});
+          }
+        }
+      } catch { /* non-critical */ }
 
       res.status(201).json({
         success: true,
