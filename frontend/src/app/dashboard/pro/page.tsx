@@ -17,6 +17,8 @@ import {
   Package,
   MessageSquare,
   Settings,
+  BarChart3,
+  CreditCard,
 } from 'lucide-react';
 
 // Mock data
@@ -94,7 +96,7 @@ export default function ProDashboardPage() {
                   <FileText className="h-5 w-5 text-emerald-600" />
                   Demandes récentes
                 </CardTitle>
-                <Link href="/dashboard/pro/requests" className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
+                <Link href="/dashboard/pro/quotes" className="text-sm text-emerald-600 hover:underline flex items-center gap-1">
                   Voir tout <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -237,6 +239,24 @@ export default function ProDashboardPage() {
                   <Button variant="outline">
                     <Settings className="h-4 w-4 mr-2" />
                     Profil professionnel
+                  </Button>
+                </Link>
+                <Link href="/dashboard/pro/quotes">
+                  <Button variant="outline">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Gérer les devis
+                  </Button>
+                </Link>
+                <Link href="/dashboard/pro/statistics">
+                  <Button variant="outline">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Statistiques
+                  </Button>
+                </Link>
+                <Link href="/dashboard/pro/subscription">
+                  <Button variant="outline">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Abonnement
                   </Button>
                 </Link>
               </div>

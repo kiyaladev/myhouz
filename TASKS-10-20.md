@@ -93,10 +93,10 @@
 | 14.2 | Gestion du portfolio (projets) | ✅ | `frontend/src/app/dashboard/pro/projects/page.tsx` — Liste, recherche, filtres par statut |
 | 14.3 | Gestion des produits (marketplace) | ✅ | `frontend/src/app/dashboard/pro/products/page.tsx` — Catalogue, stats, filtres par statut |
 | 14.4 | Gestion des avis reçus | ✅ | `frontend/src/app/dashboard/pro/reviews/page.tsx` — Consultation et réponse aux avis |
-| 14.5 | Statistiques (vues, contacts, devis) | ❌ | Graphiques et métriques |
-| 14.6 | Gestion des demandes de devis | ❌ | Liste des demandes avec réponse |
+| 14.5 | Statistiques (vues, contacts, devis) | ✅ | `frontend/src/app/dashboard/pro/statistics/page.tsx` — Graphiques barres, métriques, distribution avis |
+| 14.6 | Gestion des demandes de devis | ✅ | `frontend/src/app/dashboard/pro/quotes/page.tsx` — Liste, recherche, filtres, actions |
 | 14.7 | Paramètres du profil professionnel | ✅ | `frontend/src/app/dashboard/pro/settings/page.tsx` — Infos entreprise, adresse, services |
-| 14.8 | Gestion de l'abonnement | ❌ | Plans gratuit / premium |
+| 14.8 | Gestion de l'abonnement | ✅ | `frontend/src/app/dashboard/pro/subscription/page.tsx` — Plans gratuit/pro/premium, facturation |
 
 ---
 
@@ -115,10 +115,10 @@
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 15.7 | Page checkout / tunnel d'achat | ❌ | Adresse, livraison, paiement |
+| 15.7 | Page checkout / tunnel d'achat | ✅ | `frontend/src/app/checkout/page.tsx` — 3 étapes : adresse, livraison, paiement |
 | 15.8 | Intégration Stripe Elements | ❌ | Formulaire de carte bancaire |
-| 15.9 | Page de confirmation de commande | ❌ | Récapitulatif après paiement |
-| 15.10 | Page de suivi de commande | ❌ | Statut et historique |
+| 15.9 | Page de confirmation de commande | ✅ | `frontend/src/app/orders/confirmation/page.tsx` — Récapitulatif après paiement |
+| 15.10 | Page de suivi de commande | ✅ | `frontend/src/app/orders/tracking/page.tsx` — Timeline visuelle, détails expédition |
 
 ---
 
@@ -223,11 +223,11 @@
 | Avis & Évaluations | 100% |
 | Recherche Globale | 80% |
 | Tableau de Bord Utilisateur | 100% |
-| Tableau de Bord Professionnel | 60% |
-| Commandes & Paiements | 30% |
+| Tableau de Bord Professionnel | 100% |
+| Commandes & Paiements | 50% |
 | Notifications | 65% |
 | Pages Statiques & SEO | 100% |
 | Design System & UI | 85% |
 | Performance & Optimisation | 25% |
 | Tests | 40% |
-| **Moyenne sections 10–20** | **~65%** |
+| **Moyenne sections 10–20** | **~72%** |
