@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Bookmark, ShoppingCart, Expand } from 'lucide-react';
+import { Bookmark, ShoppingCart, Expand, Heart } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
@@ -98,6 +98,8 @@ export default function ProductDetailPage() {
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [similarProducts, setSimilarProducts] = useState<SimilarProduct[]>([]);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -132,6 +134,39 @@ export default function ProductDetailPage() {
     };
     if (product) fetchSimilar();
   }, [product]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !params.id) return;
+    const checkWishlist = async () => {
+      try {
+        const response = await api.get<{ inWishlist: boolean }>(`/wishlists/check/${params.id}`);
+        if (response.success && response.data) {
+          setIsInWishlist(response.data.inWishlist);
+        }
+      } catch {
+        // silent
+      }
+    };
+    checkWishlist();
+  }, [isAuthenticated, params.id]);
+
+  const handleToggleWishlist = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    setWishlistLoading(true);
+    try {
+      const response = await api.post<{ inWishlist: boolean }>('/wishlists/quick-add', { productId: params.id });
+      if (response.success && response.data) {
+        setIsInWishlist(response.data.inWishlist);
+      }
+    } catch {
+      // silent
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -299,7 +334,7 @@ export default function ProductDetailPage() {
                   </div>
                   <h1 className="text-2xl font-bold text-gray-900 mb-3">{product.name}</h1>
 
-                  {/* Price */}
+                  {/* Price + Wishlist */}
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-3xl font-bold text-emerald-600">
                       {product.price.amount.toLocaleString('fr-FR')} €
@@ -309,6 +344,18 @@ export default function ProductDetailPage() {
                         {product.price.originalPrice.toLocaleString('fr-FR')} €
                       </span>
                     )}
+                    <button
+                      onClick={handleToggleWishlist}
+                      disabled={wishlistLoading}
+                      className={`ml-auto p-2 rounded-full border transition-colors ${
+                        isInWishlist
+                          ? 'bg-red-50 border-red-200 text-red-500'
+                          : 'bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'
+                      }`}
+                      title={isInWishlist ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                    >
+                      <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : ''}`} />
+                    </button>
                   </div>
 
                   {/* Rating */}
