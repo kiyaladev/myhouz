@@ -19,6 +19,7 @@ import {
   Banknote,
   CreditCard,
   FileCheck,
+  FileText,
   Eye,
   RotateCcw,
   Hash,
@@ -352,10 +353,18 @@ export default function SalesHistoryPage() {
                       Fermer
                     </Button>
                     {selectedSale.status === 'completed' && (
-                      <Button variant="outline" className="flex-1 text-red-600 hover:bg-red-50">
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Rembourser
-                      </Button>
+                      <>
+                        <Link href={`/dashboard/pro/pos/invoices?saleId=${selectedSale.id}&create=true`} className="flex-1">
+                          <Button variant="outline" className="w-full">
+                            <FileText className="h-4 w-4 mr-2" />
+                            Facture
+                          </Button>
+                        </Link>
+                        <Button variant="outline" className="flex-1 text-red-600 hover:bg-red-50">
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Rembourser
+                        </Button>
+                      </>
                     )}
                   </div>
                 </CardContent>
