@@ -7,6 +7,7 @@ interface CacheEntry {
   expiry: number;
 }
 
+const MAX_CACHE_ENTRIES = parseInt(process.env.API_CACHE_MAX_ENTRIES || '500', 10);
 const cache = new Map<string, CacheEntry>();
 
 /**
@@ -53,7 +54,7 @@ export function apiCache(durationSeconds: number = 60) {
         cache.set(key, entry);
 
         // Evict old entries periodically
-        if (cache.size > 500) {
+        if (cache.size > MAX_CACHE_ENTRIES) {
           const now = Date.now();
           for (const [k, v] of cache.entries()) {
             if (v.expiry < now) cache.delete(k);

@@ -12,6 +12,11 @@ interface CreateNotificationParams {
   metadata?: Record<string, any>;
 }
 
+function truncate(text: string, maxLength: number = 80): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+}
+
 export class NotificationService {
   /**
    * Create a notification and optionally send an email
@@ -47,7 +52,7 @@ export class NotificationService {
       senderId,
       type: 'message',
       title: 'Nouveau message',
-      content: `${senderName} vous a envoyé un message : "${messagePreview.substring(0, 80)}${messagePreview.length > 80 ? '...' : ''}"`,
+      content: `${senderName} vous a envoyé un message : "${truncate(messagePreview)}"`,
       link: `/messages?conversation=${conversationId}`,
       metadata: { conversationId },
     });
