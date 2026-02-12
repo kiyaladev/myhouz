@@ -15,7 +15,12 @@ import {
   ChevronLeft,
   ShieldCheck,
   Package,
+  Loader2,
 } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 const steps = [
   { number: 1, label: 'Adresse', icon: MapPin },
@@ -53,11 +58,99 @@ const mockCartItems = [
   { id: 3, name: 'Miroir mural rond doré', quantity: 1, price: 129.0 },
 ];
 
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#111827',
+      '::placeholder': { color: '#9ca3af' },
+    },
+    invalid: { color: '#ef4444' },
+  },
+};
+
+function StripeCardForm({ onBack, processing, onProcessing }: {
+  onBack: () => void;
+  processing: boolean;
+  onProcessing: (v: boolean) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    if (!stripe || !elements) return;
+    onProcessing(true);
+    setError(null);
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      onProcessing(false);
+      return;
+    }
+
+    const { error: stripeError } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+    });
+
+    if (stripeError) {
+      setError(stripeError.message || 'Erreur de paiement');
+      onProcessing(false);
+      return;
+    }
+
+    // En production, on enverrait vers l'API backend pour créer une checkout session
+    // Pour l'instant, simuler le succès et rediriger
+    window.location.href = '/orders/confirmation?demo=true';
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="p-4 border rounded-lg">
+        <Label className="block mb-3">Informations de carte bancaire</Label>
+        <CardElement options={CARD_ELEMENT_OPTIONS} />
+      </div>
+
+      {error && (
+        <p className="text-sm text-red-600">{error}</p>
+      )}
+
+      <div className="flex items-center gap-2 text-sm text-gray-500 pt-2">
+        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        Paiement sécurisé par Stripe — vos données sont protégées
+      </div>
+
+      <div className="flex justify-between pt-4">
+        <Button variant="outline" onClick={onBack} disabled={processing}>
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Retour
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={!stripe || processing}
+          className="bg-emerald-600 hover:bg-emerald-700"
+        >
+          {processing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Traitement...
+            </>
+          ) : (
+            'Passer la commande'
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [sameAsBilling, setSameAsBilling] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
   const [address, setAddress] = useState({
     firstName: '',
@@ -68,12 +161,6 @@ export default function CheckoutPage() {
     city: '',
     country: 'France',
     phone: '',
-  });
-
-  const [card, setCard] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
   });
 
   const selectedShipping = shippingOptions.find((o) => o.id === shippingMethod) ?? shippingOptions[0];
@@ -87,10 +174,6 @@ export default function CheckoutPage() {
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAddress({ ...address, [e.target.name]: e.target.value });
-  };
-
-  const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCard({ ...card, [e.target.name]: e.target.value });
   };
 
   const nextStep = () => setCurrentStep((s) => Math.min(s + 1, 3));
@@ -364,64 +447,39 @@ export default function CheckoutPage() {
                     </div>
 
                     {paymentMethod === 'card' && (
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="cardNumber">Numéro de carte</Label>
-                          <Input
-                            id="cardNumber"
-                            name="number"
-                            value={card.number}
-                            onChange={handleCardChange}
-                            placeholder="1234 5678 9012 3456"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="cardExpiry">Date d&apos;expiration</Label>
-                            <Input
-                              id="cardExpiry"
-                              name="expiry"
-                              value={card.expiry}
-                              onChange={handleCardChange}
-                              placeholder="MM/AA"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="cardCvv">CVV</Label>
-                            <Input
-                              id="cardCvv"
-                              name="cvv"
-                              value={card.cvv}
-                              onChange={handleCardChange}
-                              placeholder="123"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <Elements stripe={stripePromise}>
+                        <StripeCardForm
+                          onBack={prevStep}
+                          processing={processing}
+                          onProcessing={setProcessing}
+                        />
+                      </Elements>
                     )}
 
                     {paymentMethod === 'paypal' && (
-                      <div className="text-center py-8 text-gray-500">
-                        <p className="text-sm">
-                          Vous serez redirigé vers PayPal pour finaliser votre paiement.
-                        </p>
-                      </div>
+                      <>
+                        <div className="text-center py-8 text-gray-500">
+                          <p className="text-sm">
+                            Vous serez redirigé vers PayPal pour finaliser votre paiement.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm text-gray-500 pt-2">
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                          Paiement sécurisé — vos données sont protégées
+                        </div>
+
+                        <div className="flex justify-between pt-4">
+                          <Button variant="outline" onClick={prevStep}>
+                            <ChevronLeft className="w-4 h-4 mr-2" />
+                            Retour
+                          </Button>
+                          <Button className="bg-emerald-600 hover:bg-emerald-700">
+                            Passer la commande
+                          </Button>
+                        </div>
+                      </>
                     )}
-
-                    <div className="flex items-center gap-2 text-sm text-gray-500 pt-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      Paiement sécurisé — vos données sont protégées
-                    </div>
-
-                    <div className="flex justify-between pt-4">
-                      <Button variant="outline" onClick={prevStep}>
-                        <ChevronLeft className="w-4 h-4 mr-2" />
-                        Retour
-                      </Button>
-                      <Button className="bg-emerald-600 hover:bg-emerald-700">
-                        Passer la commande
-                      </Button>
-                    </div>
                   </CardContent>
                 </Card>
               )}

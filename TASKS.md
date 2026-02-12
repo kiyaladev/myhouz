@@ -342,10 +342,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 14.2 | Gestion du portfolio (projets) | ✅ | `frontend/src/app/dashboard/pro/projects/page.tsx` — Liste, recherche, filtres par statut |
 | 14.3 | Gestion des produits (marketplace) | ✅ | `frontend/src/app/dashboard/pro/products/page.tsx` — Catalogue, stats, filtres par statut |
 | 14.4 | Gestion des avis reçus | ✅ | `frontend/src/app/dashboard/pro/reviews/page.tsx` — Consultation et réponse aux avis |
-| 14.5 | Statistiques (vues, contacts, devis) | ❌ | Graphiques et métriques |
-| 14.6 | Gestion des demandes de devis | ❌ | Liste des demandes avec réponse |
+| 14.5 | Statistiques (vues, contacts, devis) | ✅ | `frontend/src/app/dashboard/pro/statistics/page.tsx` — Graphiques barres, métriques, distribution avis |
+| 14.6 | Gestion des demandes de devis | ✅ | `frontend/src/app/dashboard/pro/quotes/page.tsx` — Liste, recherche, filtres, actions |
 | 14.7 | Paramètres du profil professionnel | ✅ | `frontend/src/app/dashboard/pro/settings/page.tsx` — Infos entreprise, adresse, services |
-| 14.8 | Gestion de l'abonnement | ❌ | Plans gratuit / premium |
+| 14.8 | Gestion de l'abonnement | ✅ | `frontend/src/app/dashboard/pro/subscription/page.tsx` — Plans gratuit/pro/premium, facturation |
 
 ---
 
@@ -356,18 +356,18 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 15.1 | Modèle Order | ✅ | `backend/src/models/Order.ts` |
 | 15.2 | CRUD commandes | ✅ | `OrderController` |
-| 15.3 | Intégration Stripe Checkout | ❌ | Session de paiement + webhooks |
+| 15.3 | Intégration Stripe Checkout | ✅ | `OrderController.createCheckoutSession` — Session Stripe + `handleStripeWebhook` (payment success, refund) |
 | 15.4 | Gestion des statuts de commande | ✅ | `OrderController.updateOrderStatus` — pending → confirmed → processing → shipped → delivered |
-| 15.5 | E-mail de confirmation de commande | ❌ | Template + envoi via Nodemailer |
-| 15.6 | Gestion des remboursements | ❌ | — |
+| 15.5 | E-mail de confirmation de commande | ✅ | `OrderController.sendOrderConfirmationEmail` — Template HTML + envoi via Nodemailer après paiement Stripe |
+| 15.6 | Gestion des remboursements | ✅ | `OrderController.refundOrder` — Remboursement via Stripe + restauration stock + route `POST /:id/refund` |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 15.7 | Page checkout / tunnel d'achat | ❌ | Adresse, livraison, paiement |
-| 15.8 | Intégration Stripe Elements | ❌ | Formulaire de carte bancaire |
-| 15.9 | Page de confirmation de commande | ❌ | Récapitulatif après paiement |
-| 15.10 | Page de suivi de commande | ❌ | Statut et historique |
+| 15.7 | Page checkout / tunnel d'achat | ✅ | `frontend/src/app/checkout/page.tsx` — 3 étapes : adresse, livraison, paiement |
+| 15.8 | Intégration Stripe Elements | ✅ | `@stripe/react-stripe-js` — CardElement Stripe dans le checkout, validation, loading state |
+| 15.9 | Page de confirmation de commande | ✅ | `frontend/src/app/orders/confirmation/page.tsx` — Récapitulatif après paiement |
+| 15.10 | Page de suivi de commande | ✅ | `frontend/src/app/orders/tracking/page.tsx` — Timeline visuelle, détails expédition |
 
 ---
 
@@ -583,8 +583,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Avis & Évaluations | 100% |
 | Recherche Globale | 80% |
 | Tableau de Bord Utilisateur | 100% |
-| Tableau de Bord Professionnel | 70% |
-| Commandes & Paiements | 30% |
+| Tableau de Bord Professionnel | 100% |
+| Commandes & Paiements | 100% |
 | Notifications | 65% |
 | Pages Statiques & SEO | 100% |
 | Design System & UI | 90% |
@@ -592,7 +592,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Tests | 40% |
 | Déploiement & CI/CD | 0% |
 | POS & Gestion Quincaillerie | 80% |
-| **Total global** | **~80%** |
+| **Total global** | **~85%** |
 
 ---
 
@@ -611,11 +611,11 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 3. ~~Avis et évaluations~~ ✅
 4. ~~Forum opérationnel~~ ✅
 
-### Phase 3 — Engagement & Monétisation 🟡 En cours
+### Phase 3 — Engagement & Monétisation ✅ Complété
 1. ~~Tableaux de bord (utilisateur + professionnel)~~ ✅
 2. ~~Recherche globale avancée~~ ✅
 3. ~~Notifications (modèle + UI)~~ ✅
-4. Paiements Stripe (checkout + webhooks) ❌
+4. ~~Paiements Stripe (checkout + webhooks)~~ ✅
 5. ~~Articles / Magazine~~ ✅
 6. ~~POS & Gestion Quincaillerie (caisse, stocks, ventes, factures)~~ ✅
 

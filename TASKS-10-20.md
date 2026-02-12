@@ -127,16 +127,16 @@
 |---|-------|--------|---------|
 | 15.1 | Modèle Order | ✅ | `backend/src/models/Order.ts` |
 | 15.2 | CRUD commandes | ✅ | `OrderController` |
-| 15.3 | Intégration Stripe Checkout | ❌ | Session de paiement + webhooks |
+| 15.3 | Intégration Stripe Checkout | ✅ | `OrderController.createCheckoutSession` — Session Stripe + `handleStripeWebhook` |
 | 15.4 | Gestion des statuts de commande | ✅ | `OrderController.updateOrderStatus` — pending → confirmed → processing → shipped → delivered |
-| 15.5 | E-mail de confirmation de commande | ❌ | Template + envoi via Nodemailer |
-| 15.6 | Gestion des remboursements | ❌ | — |
+| 15.5 | E-mail de confirmation de commande | ✅ | `OrderController.sendOrderConfirmationEmail` — Template HTML + Nodemailer |
+| 15.6 | Gestion des remboursements | ✅ | `OrderController.refundOrder` — Remboursement Stripe + restauration stock |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 15.7 | Page checkout / tunnel d'achat | ✅ | `frontend/src/app/checkout/page.tsx` — 3 étapes : adresse, livraison, paiement |
-| 15.8 | Intégration Stripe Elements | ❌ | Formulaire de carte bancaire |
+| 15.8 | Intégration Stripe Elements | ✅ | `@stripe/react-stripe-js` CardElement dans checkout |
 | 15.9 | Page de confirmation de commande | ✅ | `frontend/src/app/orders/confirmation/page.tsx` — Récapitulatif après paiement |
 | 15.10 | Page de suivi de commande | ✅ | `frontend/src/app/orders/tracking/page.tsx` — Timeline visuelle, détails expédition |
 
@@ -244,10 +244,10 @@
 | Recherche Globale | 80% |
 | Tableau de Bord Utilisateur | 100% |
 | Tableau de Bord Professionnel + POS | 100% |
-| Commandes & Paiements | 50% |
+| Commandes & Paiements | 100% |
 | Notifications | 65% |
 | Pages Statiques & SEO | 100% |
 | Design System & UI | 85% |
 | Performance & Optimisation | 25% |
 | Tests | 40% |
-| **Moyenne sections 10–20** | **~72%** |
+| **Moyenne sections 10–20** | **~77%** |

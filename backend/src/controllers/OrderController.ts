@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import Order from '../models/Order';
 import Product from '../models/Product';
+import stripe from '../config/stripe';
+import { sendEmail } from '../config/email';
 
 export class OrderController {
   // Créer une nouvelle commande
@@ -492,6 +494,239 @@ export class OrderController {
         success: false,
         message: 'Erreur interne du serveur'
       });
+    }
+  }
+
+  // Créer une session Stripe Checkout
+  static async createCheckoutSession(req: Request, res: Response): Promise<void> {
+    try {
+      const { orderId } = req.body;
+
+      const order = await Order.findById(orderId).populate('items.product', 'name images');
+
+      if (!order) {
+        res.status(404).json({ success: false, message: 'Commande non trouvée' });
+        return;
+      }
+
+      if (order.customer.toString() !== req.user?.userId) {
+        res.status(403).json({ success: false, message: 'Accès non autorisé' });
+        return;
+      }
+
+      if (order.payment.status !== 'pending') {
+        res.status(400).json({ success: false, message: 'Le paiement a déjà été traité' });
+        return;
+      }
+
+      const lineItems = order.items.map((item: any) => ({
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: item.product?.name || 'Produit',
+            images: item.product?.images?.length ? [item.product.images[0]] : [],
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity,
+      }));
+
+      // Ajouter frais de port comme ligne
+      if (order.totals.shipping > 0) {
+        lineItems.push({
+          price_data: {
+            currency: 'eur',
+            product_data: { name: 'Frais de livraison', images: [] },
+            unit_amount: Math.round(order.totals.shipping * 100),
+          },
+          quantity: 1,
+        });
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'payment',
+        line_items: lineItems,
+        metadata: { orderId: (order._id as any).toString() },
+        success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/orders/confirmation?session_id={CHECKOUT_SESSION_ID}&order_id=${(order._id as any).toString()}`,
+        cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout?cancelled=true`,
+      });
+
+      res.json({ success: true, data: { sessionId: session.id, url: session.url } });
+    } catch (error) {
+      console.error('Erreur lors de la création de la session Stripe:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
+  // Gérer les webhooks Stripe
+  static async handleStripeWebhook(req: Request, res: Response): Promise<void> {
+    const sig = req.headers['stripe-signature'] as string;
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err: any) {
+      console.error('Erreur de vérification webhook Stripe:', err.message);
+      res.status(400).json({ success: false, message: `Webhook Error: ${err.message}` });
+      return;
+    }
+
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object as any;
+          const orderId = session.metadata?.orderId;
+
+          if (orderId) {
+            const order = await Order.findById(orderId).populate('customer', 'firstName lastName email');
+
+            if (order && order.payment.status === 'pending') {
+              order.payment.status = 'paid';
+              order.payment.transactionId = session.payment_intent;
+              order.payment.paidAt = new Date();
+              order.status = 'confirmed';
+              await order.save();
+
+              // Envoyer l'email de confirmation
+              const customer = order.customer as any;
+              if (customer?.email) {
+                await OrderController.sendOrderConfirmationEmail(order, customer);
+              }
+            }
+          }
+          break;
+        }
+
+        case 'charge.refunded': {
+          const charge = event.data.object as any;
+          const paymentIntent = charge.payment_intent;
+
+          if (paymentIntent) {
+            const order = await Order.findOne({ 'payment.transactionId': paymentIntent });
+            if (order) {
+              order.payment.status = 'refunded';
+              order.status = 'refunded';
+              await order.save();
+
+              // Remettre le stock
+              for (const item of order.items) {
+                await Product.findByIdAndUpdate(
+                  item.product,
+                  { $inc: { 'inventory.quantity': item.quantity } }
+                );
+              }
+            }
+          }
+          break;
+        }
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Erreur lors du traitement du webhook:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
+  // Rembourser une commande via Stripe
+  static async refundOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      const order = await Order.findById(id);
+
+      if (!order) {
+        res.status(404).json({ success: false, message: 'Commande non trouvée' });
+        return;
+      }
+
+      if (order.payment.status !== 'paid') {
+        res.status(400).json({ success: false, message: 'Seules les commandes payées peuvent être remboursées' });
+        return;
+      }
+
+      // Si un transactionId Stripe existe, rembourser via Stripe
+      if (order.payment.transactionId) {
+        await stripe.refunds.create({
+          payment_intent: order.payment.transactionId,
+          reason: 'requested_by_customer',
+        });
+      }
+
+      // Mettre à jour la commande
+      order.payment.status = 'refunded';
+      order.status = 'refunded';
+      order.notes = reason || 'Remboursement demandé';
+      await order.save();
+
+      // Remettre le stock
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { 'inventory.quantity': item.quantity } }
+        );
+      }
+
+      res.json({ success: true, message: 'Commande remboursée avec succès', data: order });
+    } catch (error) {
+      console.error('Erreur lors du remboursement:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
+  // Envoyer un email de confirmation de commande
+  private static async sendOrderConfirmationEmail(order: any, customer: any): Promise<void> {
+    try {
+      const itemsHtml = order.items.map((item: any) => `
+        <tr>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${item.product?.name || 'Produit'}</td>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:center;">${item.quantity}</td>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:right;">${(item.price * item.quantity).toFixed(2)} €</td>
+        </tr>
+      `).join('');
+
+      const html = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+          <div style="background-color:#059669;padding:24px;text-align:center;">
+            <h1 style="color:white;margin:0;">MyHouz</h1>
+          </div>
+          <div style="padding:24px;">
+            <h2 style="color:#111827;">Confirmation de commande</h2>
+            <p>Bonjour ${customer.firstName} ${customer.lastName},</p>
+            <p>Merci pour votre commande ! Voici le récapitulatif :</p>
+            <p><strong>Commande n° :</strong> ${order.orderNumber}</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+              <thead>
+                <tr style="background-color:#f3f4f6;">
+                  <th style="padding:8px;text-align:left;">Produit</th>
+                  <th style="padding:8px;text-align:center;">Qté</th>
+                  <th style="padding:8px;text-align:right;">Total</th>
+                </tr>
+              </thead>
+              <tbody>${itemsHtml}</tbody>
+            </table>
+            <div style="text-align:right;margin-top:16px;">
+              <p>Sous-total : ${order.totals.subtotal.toFixed(2)} €</p>
+              <p>Livraison : ${order.totals.shipping.toFixed(2)} €</p>
+              <p>TVA : ${order.totals.tax.toFixed(2)} €</p>
+              <p style="font-size:18px;font-weight:bold;color:#059669;">Total : ${order.totals.total.toFixed(2)} €</p>
+            </div>
+            <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb;" />
+            <p style="color:#6b7280;font-size:14px;">Vous recevrez un email lorsque votre commande sera expédiée.</p>
+          </div>
+          <div style="background-color:#f9fafb;padding:16px;text-align:center;color:#9ca3af;font-size:12px;">
+            <p>© ${new Date().getFullYear()} MyHouz — Tous droits réservés</p>
+          </div>
+        </div>
+      `;
+
+      await sendEmail(customer.email, `Confirmation de commande ${order.orderNumber}`, html);
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email de confirmation pour la commande', order.orderNumber, ':', error);
     }
   }
 }
