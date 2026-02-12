@@ -553,16 +553,16 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 ### Améliorations Futures (Quincaillerie)
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 22.40 | Impression/export PDF des factures | ❌ | Génération PDF avec logo, infos légales, mise en page professionnelle |
-| 22.41 | Envoi de facture par email | ❌ | Envoi automatique au client via Nodemailer |
-| 22.42 | Gestion des fournisseurs | ❌ | Modèle Supplier + commandes fournisseur + réapprovisionnement |
-| 22.43 | Alertes de réapprovisionnement auto | ❌ | Notification quand stock < seuil min configurable |
-| 22.44 | Codes-barres / QR codes produits | ❌ | Scan code-barres pour recherche rapide au POS |
-| 22.45 | Rapports financiers (jour/semaine/mois) | ❌ | Dashboard analytique avec graphiques de CA, marges, top produits |
-| 22.46 | Gestion multi-caisse | ❌ | Support plusieurs caisses simultanées |
-| 22.47 | Programme de fidélité clients | ❌ | Points de fidélité, historique client, remises automatiques |
-| 22.48 | Gestion des retours produits | ❌ | Workflow retour avec motif, impact stock, avoir client |
-| 22.49 | Intégration comptabilité | ❌ | Export données comptables (format FEC, CSV) |
+| 22.40 | Impression/export PDF des factures | ✅ | `InvoiceController.exportPDF()` — PDF pdfkit avec en-tête entreprise, infos client, tableau articles, totaux TVA, pied de page légal. Route `GET /api/pos/invoices/:id/pdf` |
+| 22.41 | Envoi de facture par email | ✅ | `InvoiceController.sendByEmail()` — Email HTML via Nodemailer avec tableau détaillé, passage brouillon→envoyée. Route `POST /api/pos/invoices/:id/send` |
+| 22.42 | Gestion des fournisseurs | ✅ | Modèle `Supplier` + `SupplierController` CRUD complet. Frontend `frontend/src/app/dashboard/pro/pos/suppliers/page.tsx` avec liste, filtres, modales création/détail |
+| 22.43 | Alertes de réapprovisionnement auto | ✅ | `PosController.checkRestockAlerts()` — Seuil configurable, notifications système upsert, niveaux critique/warning. Route `GET /api/pos/stock/alerts` |
+| 22.44 | Codes-barres / QR codes produits | ✅ | `PosController.searchByBarcode()` — Recherche produit par code-barres. Route `GET /api/pos/products/barcode?code=xxx` |
+| 22.45 | Rapports financiers (jour/semaine/mois) | ✅ | `PosController.getFinancialReports()` — Agrégation MongoDB : CA, top produits, répartition paiements, panier moyen. Frontend `frontend/src/app/dashboard/pro/pos/reports/page.tsx` |
+| 22.46 | Gestion multi-caisse | ✅ | Modèle `Register` + `RegisterController` (ouvrir/fermer/créer/supprimer). Frontend `frontend/src/app/dashboard/pro/pos/registers/page.tsx` avec gestion sessions |
+| 22.47 | Programme de fidélité clients | ✅ | Modèle `LoyaltyProgram` + `LoyaltyController` (ajout client, earn/spend points, tiers bronze→platinum). Frontend `frontend/src/app/dashboard/pro/pos/loyalty/page.tsx` |
+| 22.48 | Gestion des retours produits | ✅ | Modèle `ProductReturn` + `ReturnController` (créer, approuver/rejeter, restauration stock). Frontend `frontend/src/app/dashboard/pro/pos/returns/page.tsx` |
+| 22.49 | Intégration comptabilité | ✅ | `PosController.exportAccounting()` — Export FEC (format légal français) et CSV. Route `GET /api/pos/accounting/export?format=fec|csv` |
 
 ---
 
@@ -591,7 +591,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Performance & Optimisation | 25% |
 | Tests | 40% |
 | Déploiement & CI/CD | 0% |
-| POS & Gestion Quincaillerie | 80% |
+| POS & Gestion Quincaillerie | 100% |
 | **Total global** | **~85%** |
 
 ---
