@@ -5,6 +5,9 @@ import jwt from 'jsonwebtoken';
 import { initSocketServer, getIO, emitNewMessage, emitMessageUpdated, emitMessageDeleted } from '../services/socketService';
 
 const JWT_SECRET = 'test-secret';
+
+// Set env before importing services
+process.env.JWT_SECRET = JWT_SECRET;
 const PORT = 0; // let OS pick a free port
 
 function makeToken(userId: string, userType: string = 'particulier'): string {

@@ -34,7 +34,7 @@ export function initSocketServer(httpServer: HttpServer): Server {
       return next(new Error('Authentication token required'));
     }
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret') as JwtPayload;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
       socket.userId = decoded.userId;
       socket.userType = decoded.userType;
       next();
@@ -97,7 +97,7 @@ export function getIO(): Server | null {
 }
 
 /** Emit a new message event to a conversation room and individual user rooms */
-export function emitNewMessage(conversationId: string, message: any, recipientIds: string[]): void {
+export function emitNewMessage(conversationId: string, message: unknown, recipientIds: string[]): void {
   if (!io) return;
   io.to(`conversation:${conversationId}`).emit('message:new', message);
   for (const id of recipientIds) {
@@ -106,7 +106,7 @@ export function emitNewMessage(conversationId: string, message: any, recipientId
 }
 
 /** Emit a message update event */
-export function emitMessageUpdated(conversationId: string, message: any): void {
+export function emitMessageUpdated(conversationId: string, message: unknown): void {
   if (!io) return;
   io.to(`conversation:${conversationId}`).emit('message:updated', message);
 }
