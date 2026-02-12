@@ -13,6 +13,7 @@ export { default as Cart } from './Cart';
 export { default as ArticleComment } from './ArticleComment';
 export { default as Quote } from './Quote';
 export { default as PosSale } from './PosSale';
+export { default as Wishlist } from './Wishlist';
 
 // Export interfaces
 export type { IUser } from './User';
@@ -29,3 +30,4 @@ export type { ICart, ICartItem } from './Cart';
 export type { IArticleComment } from './ArticleComment';
 export type { IQuote } from './Quote';
 export type { IPosSale } from './PosSale';
+export type { IWishlist, IWishlistItem } from './Wishlist';

@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import Link from 'next/link';
+import PersonalizedSection from '../components/home/PersonalizedSection';
 
 export const metadata: Metadata = {
   title: 'MyHouz - Inspiration, Professionnels & Produits pour votre Maison',
@@ -110,6 +111,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Personalized Section (client component) */}
+      <PersonalizedSection />
 
       {/* Search Bar */}
       <section className="py-8 bg-white border-t border-gray-200">

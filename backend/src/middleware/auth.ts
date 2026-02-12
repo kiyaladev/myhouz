@@ -9,8 +9,9 @@ interface JwtPayload {
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: JwtPayload;
+    interface User {
+      userId: string;
+      userType: 'particulier' | 'professionnel';
     }
   }
 }

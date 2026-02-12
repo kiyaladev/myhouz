@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import Layout from '../../components/layout/Layout';
 import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/card';
@@ -9,6 +10,9 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
+import type { MapMarker } from '../../components/ui/map';
+
+const Map = dynamic(() => import('../../components/ui/map'), { ssr: false });
 
 interface Professional {
   _id: string;
@@ -85,9 +89,24 @@ const mockProfessionals: Professional[] = [
   },
 ];
 
+// Approximate coordinates for major French cities
+const cityCoordinates: Record<string, { lat: number; lng: number }> = {
+  'Paris': { lat: 48.8566, lng: 2.3522 },
+  'Lyon': { lat: 45.7640, lng: 4.8357 },
+  'Marseille': { lat: 43.2965, lng: 5.3698 },
+  'Bordeaux': { lat: 44.8378, lng: -0.5792 },
+  'Toulouse': { lat: 43.6047, lng: 1.4442 },
+  'Nice': { lat: 43.7102, lng: 7.2620 },
+  'Nantes': { lat: 47.2184, lng: -1.5536 },
+  'Strasbourg': { lat: 48.5734, lng: 7.7521 },
+  'Lille': { lat: 50.6292, lng: 3.0573 },
+  'Montpellier': { lat: 43.6108, lng: 3.8767 },
+};
+
 export default function ProfessionalsPage() {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [filters, setFilters] = useState({
     city: '',
     service: '',
@@ -121,6 +140,24 @@ export default function ProfessionalsPage() {
     e.preventDefault();
     fetchProfessionals();
   };
+
+  const mapMarkers: MapMarker[] = useMemo(() => {
+    return professionals
+      .filter((pro) => {
+        const city = pro.location?.city;
+        return city && cityCoordinates[city];
+      })
+      .map((pro) => {
+        const coords = cityCoordinates[pro.location!.city!];
+        return {
+          id: pro._id,
+          lat: coords.lat,
+          lng: coords.lng,
+          name: pro.professionalInfo?.companyName || `${pro.firstName} ${pro.lastName}`,
+          description: pro.location?.city || '',
+        };
+      });
+  }, [professionals]);
 
   return (
     <Layout>
@@ -171,6 +208,26 @@ export default function ProfessionalsPage() {
             </form>
           </div>
 
+          {/* View Toggle */}
+          <div className="flex justify-end mb-4">
+            <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+              <Button
+                size="sm"
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('list')}
+              >
+                Liste
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'map' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('map')}
+              >
+                Carte
+              </Button>
+            </div>
+          </div>
+
           {/* Results */}
           {isLoading ? (
             <div className="text-center py-12 text-gray-500">Chargement des professionnels...</div>
@@ -178,6 +235,10 @@ export default function ProfessionalsPage() {
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">Aucun professionnel trouvé</p>
               <p className="text-gray-400 mt-1">Essayez de modifier vos critères de recherche</p>
+            </div>
+          ) : viewMode === 'map' ? (
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden" style={{ height: '600px' }}>
+              <Map markers={mapMarkers} />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -14,6 +14,7 @@ import searchRoutes from './searchRoutes';
 import cartRoutes from './cartRoutes';
 import quoteRoutes from './quoteRoutes';
 import posRoutes from './posRoutes';
+import wishlistRoutes from './wishlistRoutes';
 
 const router = Router();
 
@@ -33,6 +34,7 @@ router.use('/search', searchRoutes);
 router.use('/cart', cartRoutes);
 router.use('/quotes', quoteRoutes);
 router.use('/pos', posRoutes);
+router.use('/wishlists', wishlistRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {
