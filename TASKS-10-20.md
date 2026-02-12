@@ -150,7 +150,7 @@
 | 16.1 | Modèle Notification | ✅ | `backend/src/models/Notification.ts` — Type, destinataire, lu/non lu, metadata |
 | 16.2 | CRUD notifications + routes | ✅ | `NotificationController` + `notificationRoutes.ts` — GET, mark read, delete |
 | 16.3 | WebSocket pour notifications temps réel | ❌ | Socket.io |
-| 16.4 | Notifications par e-mail | ❌ | Templates Nodemailer |
+| 16.4 | Notifications par e-mail | ✅ | `backend/src/services/notificationEmailService.ts` — Templates HTML (message, avis, commande, devis, ideabook, système) via Nodemailer |
 | 16.5 | Préférences de notification par utilisateur | ❌ | — |
 
 ### Frontend
@@ -211,8 +211,8 @@
 
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 19.1 | Optimisation des images (Next.js Image) | ❌ | Remplacer `<img>` par `<Image>` Next.js |
-| 19.2 | Lazy loading des composants | ❌ | `React.lazy` / `next/dynamic` |
+| 19.1 | Optimisation des images (Next.js Image) | ✅ | Remplacement `<img>` par `<Image>` Next.js sur 16+ fichiers avec `remotePatterns` dans `next.config.ts` |
+| 19.2 | Lazy loading des composants | ✅ | `next/dynamic` pour Lightbox, SaveToIdeabookModal, RichEditor — SSR désactivé pour composants lourds |
 | 19.3 | Cache API côté backend (Redis) | ❌ | — |
 | 19.4 | Pagination serveur sur toutes les listes | 🟡 | À vérifier sur chaque endpoint |
 | 19.5 | Compression des réponses (gzip) | ✅ | `compression` middleware dans `server.ts` |
@@ -231,7 +231,7 @@
 | 20.2 | Tests d'intégration API (Supertest) | ✅ | 5 tests passants via Supertest sur les endpoints health et search |
 | 20.3 | Tests unitaires frontend (Jest / React Testing Library) | ❌ | Composants UI |
 | 20.4 | Tests end-to-end (Cypress / Playwright) | ❌ | Parcours utilisateur complets |
-| 20.5 | Configuration CI pour les tests | ❌ | GitHub Actions |
+| 20.5 | Configuration CI pour les tests | ✅ | `.github/workflows/ci.yml` — GitHub Actions : build + test backend, lint + build frontend |
 
 ---
 
@@ -245,9 +245,9 @@
 | Tableau de Bord Utilisateur | 100% |
 | Tableau de Bord Professionnel + POS | 100% |
 | Commandes & Paiements | 100% |
-| Notifications | 65% |
+| Notifications | 75% |
 | Pages Statiques & SEO | 100% |
 | Design System & UI | 85% |
-| Performance & Optimisation | 25% |
-| Tests | 40% |
-| **Moyenne sections 10–20** | **~77%** |
+| Performance & Optimisation | 50% |
+| Tests | 60% |
+| **Moyenne sections 10–20** | **~82%** |

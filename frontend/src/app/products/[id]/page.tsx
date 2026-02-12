@@ -3,14 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { Bookmark, ShoppingCart, Expand, Heart } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
-import Lightbox from '../../../components/ui/lightbox';
-import SaveToIdeabookModal from '../../../components/SaveToIdeabookModal';
+const Lightbox = dynamic(() => import('../../../components/ui/lightbox'), { ssr: false });
+const SaveToIdeabookModal = dynamic(() => import('../../../components/SaveToIdeabookModal'));
 import { useAuth } from '../../../contexts/AuthContext';
 import { useCart } from '../../../contexts/CartContext';
 
@@ -270,11 +272,14 @@ export default function ProductDetailPage() {
               {/* Image Gallery */}
               <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
                 <div className="relative group">
-                  <img
+                  <Image
                     src={product.images[selectedImage]?.url || product.images[0]?.url}
                     alt={product.images[selectedImage]?.caption || product.name}
                     className="w-full h-96 object-cover cursor-pointer"
+                    width={800}
+                    height={384}
                     onClick={() => setIsLightboxOpen(true)}
+                    unoptimized
                   />
                   {/* Image overlay actions */}
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -314,10 +319,13 @@ export default function ProductDetailPage() {
                           selectedImage === idx ? 'border-emerald-500' : 'border-transparent'
                         }`}
                       >
-                        <img
+                        <Image
                           src={img.url}
                           alt={img.caption || `Photo ${idx + 1}`}
                           className="w-full h-full object-cover"
+                          width={80}
+                          height={80}
+                          unoptimized
                         />
                       </button>
                     ))}
@@ -411,10 +419,13 @@ export default function ProductDetailPage() {
                     {similarProducts.map((p) => (
                       <Link key={p._id} href={`/products/${p._id}`} className="group">
                         <div className="rounded-lg overflow-hidden border hover:shadow-md transition-shadow">
-                          <img
+                          <Image
                             src={p.images[0]?.url || 'https://via.placeholder.com/400x300'}
                             alt={p.name}
                             className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                            width={400}
+                            height={128}
+                            unoptimized
                           />
                           <div className="p-3">
                             <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition-colors">{p.name}</h3>

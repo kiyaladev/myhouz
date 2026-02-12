@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -186,10 +187,13 @@ export default function DashboardPage() {
                   <ul className="space-y-3">
                     {ideabooks.map((book) => (
                       <li key={book.id} className="flex items-center gap-3">
-                        <img
+                        <Image
                           src={book.thumbnail}
                           alt={book.name}
                           className="w-14 h-14 rounded-lg object-cover"
+                          width={56}
+                          height={56}
+                          unoptimized
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{book.name}</p>

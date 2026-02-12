@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -263,10 +264,13 @@ export default function DashboardFavoritesPage() {
                       <Card key={item.product._id} className="overflow-hidden hover:shadow-md transition-shadow">
                         <Link href={`/products/${item.product._id}`}>
                           <div className="relative h-48 bg-gray-200">
-                            <img
+                            <Image
                               src={item.product.images[0]?.url || 'https://via.placeholder.com/400x300'}
                               alt={item.product.name}
                               className="w-full h-full object-cover"
+                              width={400}
+                              height={192}
+                              unoptimized
                             />
                           </div>
                         </Link>

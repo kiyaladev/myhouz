@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Layout from '../components/layout/Layout';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -183,7 +184,7 @@ export default function HomePage() {
               <Link key={project.id} href={`/projects/${project.id}`} className="flex-shrink-0 w-72">
                 <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                   <div className="relative">
-                    <img src={project.image} alt={project.title} className="w-full h-44 object-cover" />
+                    <Image src={project.image} alt={project.title} width={400} height={176} className="w-full h-44 object-cover" />
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-1 truncate">{project.title}</h3>
@@ -336,7 +337,7 @@ export default function HomePage() {
             {popularProducts.map((product) => (
               <Link key={product.id} href={`/products/${product.id}`}>
                 <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
-                  <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
+                  <Image src={product.image} alt={product.name} width={400} height={192} className="w-full h-48 object-cover" />
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
                     <div className="flex items-center mb-2">
@@ -375,7 +376,7 @@ export default function HomePage() {
               <Link key={article.slug} href={`/articles/${article.slug}`}>
                 <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                   <div className="relative">
-                    <img src={article.image} alt={article.title} className="w-full h-48 object-cover" />
+                    <Image src={article.image} alt={article.title} width={400} height={192} className="w-full h-48 object-cover" />
                     <Badge className="absolute top-4 left-4">{article.category}</Badge>
                   </div>
                   <div className="p-6">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../../components/layout/Layout';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
@@ -159,10 +160,13 @@ export default function ExploreIdeabooksPage() {
                   <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                     <div className="relative">
                       {ideabook.coverImage ? (
-                        <img
+                        <Image
                           src={ideabook.coverImage}
                           alt={ideabook.name}
                           className="w-full h-48 object-cover"
+                          width={400}
+                          height={192}
+                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-48 bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -84,10 +85,13 @@ export default function DashboardIdeabooksPage() {
               {ideabooks.map((book) => (
                 <Card key={book.id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="relative h-48 bg-gray-200">
-                    <img
+                    <Image
                       src={book.thumbnail}
                       alt={book.name}
                       className="w-full h-full object-cover"
+                      width={400}
+                      height={192}
+                      unoptimized
                     />
                     <div className="absolute top-3 right-3">
                       <Badge className={book.isPublic ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>

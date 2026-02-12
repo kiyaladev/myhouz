@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { RatingDisplay } from '@/components/ui/rating';
 import { ThumbsUp, ThumbsDown, CheckCircle, MessageSquare } from 'lucide-react';
@@ -36,9 +37,11 @@ export function ReviewCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             {author.avatar ? (
-              <img
+              <Image
                 src={author.avatar}
                 alt={author.name}
+                width={40}
+                height={40}
                 className="h-10 w-10 rounded-full object-cover"
               />
             ) : (

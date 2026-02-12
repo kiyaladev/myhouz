@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Layout from '../../../../components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RichEditor } from '@/components/ui/rich-editor';
+const RichEditor = dynamic(() => import('@/components/ui/rich-editor').then(mod => ({ default: mod.RichEditor })), { ssr: false });
 import { FileText, Save, X } from 'lucide-react';
 
 const categories = [

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../components/layout/Layout';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -416,10 +417,13 @@ export default function ProductsPage() {
                   <Link key={product.id} href={`/products/${product.id}`}>
                   <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                     <div className="relative">
-                      <img
+                      <Image
                         src={product.images[0]}
                         alt={product.name}
                         className="w-full h-48 object-cover"
+                        width={400}
+                        height={192}
+                        unoptimized
                       />
                       {product.price.originalPrice && (
                         <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded text-sm font-medium">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../components/layout/Layout';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -259,10 +260,13 @@ export default function ProjectsPage() {
               <Card key={project.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                 <Link href={`/projects/${project.id}`} aria-label={`Voir le projet : ${project.title}`}>
                 <div className="relative">
-                  <img
+                  <Image
                     src={project.images[0]}
                     alt={project.title}
                     className="w-full h-48 object-cover"
+                    width={400}
+                    height={192}
+                    unoptimized
                   />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

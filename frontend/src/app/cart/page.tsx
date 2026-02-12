@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../components/layout/Layout';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -76,10 +77,13 @@ export default function CartPage() {
                       {/* Product Image */}
                       <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                         {item.product.images?.[0]?.url ? (
-                          <img
+                          <Image
                             src={item.product.images[0].url}
                             alt={item.product.name}
                             className="w-full h-full object-cover"
+                            width={96}
+                            height={96}
+                            unoptimized
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

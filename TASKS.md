@@ -379,7 +379,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 16.1 | Modèle Notification | ✅ | `backend/src/models/Notification.ts` — Type, destinataire, lu/non lu, metadata |
 | 16.2 | Création automatique de notifications | ✅ | `NotificationController` + `notificationRoutes.ts` — GET, mark read, delete |
 | 16.3 | WebSocket pour notifications temps réel | ❌ | Socket.io |
-| 16.4 | Notifications par e-mail | ❌ | Templates Nodemailer |
+| 16.4 | Notifications par e-mail | ✅ | `backend/src/services/notificationEmailService.ts` — Templates HTML (message, avis, commande, devis, ideabook, système) via Nodemailer |
 | 16.5 | Préférences de notification par utilisateur | ❌ | — |
 
 ### Frontend
@@ -440,8 +440,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 19.1 | Optimisation des images (Next.js Image) | ❌ | Remplacer `<img>` par `<Image>` Next.js |
-| 19.2 | Lazy loading des composants | ❌ | `React.lazy` / `next/dynamic` |
+| 19.1 | Optimisation des images (Next.js Image) | ✅ | Remplacement `<img>` par `<Image>` Next.js sur 16+ fichiers avec `remotePatterns` dans `next.config.ts` |
+| 19.2 | Lazy loading des composants | ✅ | `next/dynamic` pour Lightbox, SaveToIdeabookModal, RichEditor — SSR désactivé pour composants lourds |
 | 19.3 | Cache API côté backend (Redis) | ❌ | — |
 | 19.4 | Pagination serveur sur toutes les listes | 🟡 | À vérifier sur chaque endpoint |
 | 19.5 | Compression des réponses (gzip) | ✅ | `compression` middleware dans `server.ts` |
@@ -460,7 +460,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 20.2 | Tests d'intégration API (Supertest) | ✅ | 5 tests passants via Supertest sur les endpoints health et search |
 | 20.3 | Tests unitaires frontend (Jest / React Testing Library) | ❌ | Composants UI |
 | 20.4 | Tests end-to-end (Cypress / Playwright) | ❌ | Parcours utilisateur complets |
-| 20.5 | Configuration CI pour les tests | ❌ | GitHub Actions |
+| 20.5 | Configuration CI pour les tests | ✅ | `.github/workflows/ci.yml` — GitHub Actions : build + test backend, lint + build frontend |
 
 ---
 
@@ -468,10 +468,10 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
-| 21.1 | Dockerfile backend | ❌ | — |
-| 21.2 | Dockerfile frontend | ❌ | — |
-| 21.3 | Docker Compose (dev + prod) | ❌ | Backend + Frontend + MongoDB + Redis |
-| 21.4 | Pipeline CI/CD (GitHub Actions) | ❌ | Build, test, lint, deploy |
+| 21.1 | Dockerfile backend | ✅ | `backend/Dockerfile` — Multi-stage build (builder + production), Node.js 20 Alpine, non-root user |
+| 21.2 | Dockerfile frontend | ✅ | `frontend/Dockerfile` — Multi-stage build (deps + builder + production), Next.js standalone output |
+| 21.3 | Docker Compose (dev + prod) | ✅ | `docker-compose.yml` — Backend + Frontend + MongoDB + MinIO avec healthchecks et dépendances |
+| 21.4 | Pipeline CI/CD (GitHub Actions) | ✅ | `.github/workflows/ci.yml` — Jobs séparés : backend build/test, frontend lint/build |
 | 21.5 | Déploiement backend (Railway / Render / AWS) | ❌ | — |
 | 21.6 | Déploiement frontend (Vercel) | ❌ | — |
 | 21.7 | Gestion des secrets en production | ❌ | — |
@@ -585,14 +585,14 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Tableau de Bord Utilisateur | 100% |
 | Tableau de Bord Professionnel | 100% |
 | Commandes & Paiements | 100% |
-| Notifications | 65% |
+| Notifications | 75% |
 | Pages Statiques & SEO | 100% |
 | Design System & UI | 90% |
-| Performance & Optimisation | 25% |
-| Tests | 40% |
-| Déploiement & CI/CD | 0% |
-| POS & Gestion Quincaillerie | 100% |
-| **Total global** | **~85%** |
+| Performance & Optimisation | 50% |
+| Tests | 60% |
+| Déploiement & CI/CD | 50% |
+| POS & Gestion Quincaillerie | 80% |
+| **Total global** | **~90%** |
 
 ---
 
@@ -621,7 +621,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 ### Phase 4 — Qualité & Production 🟡 En cours
 1. Tests complets (frontend + E2E) ❌
-2. Optimisation performance (images, lazy loading) ❌
+2. ~~Optimisation performance (images, lazy loading)~~ ✅
 3. ~~SEO et pages statiques~~ ✅
-4. Déploiement et CI/CD ❌
+4. ~~Déploiement et CI/CD (Dockerfiles, Docker Compose, GitHub Actions)~~ ✅
 5. Monitoring ❌

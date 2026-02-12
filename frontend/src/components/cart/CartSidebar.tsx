@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { X, ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { Button } from '../ui/button';
@@ -74,9 +75,11 @@ export default function CartSidebar() {
                     onClick={closeCart}
                     className="flex-shrink-0"
                   >
-                    <img
+                    <Image
                       src={item.product.images?.[0]?.url || 'https://via.placeholder.com/80'}
                       alt={item.product.name}
+                      width={80}
+                      height={80}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
                   </Link>

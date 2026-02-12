@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
@@ -232,10 +233,13 @@ export default function ArticleDetailPage() {
 
         {/* Cover Image */}
         <div className="relative w-full h-72 md:h-96">
-          <img
+          <Image
             src={article.coverImage}
             alt={article.title}
             className="w-full h-full object-cover"
+            width={800}
+            height={384}
+            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         </div>
@@ -446,10 +450,13 @@ export default function ArticleDetailPage() {
                     {relatedArticles.map((related) => (
                       <Link key={related._id} href={`/articles/${related.slug}`} className="block group">
                         <div className="flex gap-3">
-                          <img
+                          <Image
                             src={related.coverImage}
                             alt={related.title}
                             className="w-20 h-16 rounded-lg object-cover flex-shrink-0"
+                            width={80}
+                            height={64}
+                            unoptimized
                           />
                           <div>
                             <h4 className="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-2">
