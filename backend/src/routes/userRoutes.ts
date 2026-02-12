@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import passport from 'passport';
 import { UserController } from '../controllers/UserController';
 import { authenticateToken, requireProfessional } from '../middleware/auth';
 import { uploadSingle } from '../middleware/upload';
+import { generateTokens } from '../config/passport';
+import { IUser } from '../models/User';
 
 const router = Router();
 
@@ -29,6 +32,30 @@ router.post('/resend-verification', passwordResetLimiter, UserController.resendV
 router.post('/refresh-token', UserController.refreshToken);
 router.get('/professionals/search', UserController.searchProfessionals);
 router.get('/professionals/:id', UserController.getProfessionalProfile);
+
+// Routes OAuth Google
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+router.get('/auth/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/login?error=google_failed` }),
+  (req, res) => {
+    const user = req.user as IUser;
+    const { token, refreshToken } = generateTokens(user._id as string, user.userType);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
+  }
+);
+
+// Routes OAuth Facebook
+router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'], session: false }));
+router.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/login?error=facebook_failed` }),
+  (req, res) => {
+    const user = req.user as IUser;
+    const { token, refreshToken } = generateTokens(user._id as string, user.userType);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
+  }
+);
 
 // Routes protégées
 router.get('/profile', authenticateToken, UserController.getProfile);

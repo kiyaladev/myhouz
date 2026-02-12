@@ -5,6 +5,8 @@ import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import passport from 'passport';
+import './config/passport';
 import apiRoutes from './routes';
 
 // Charger les variables d'environnement
@@ -29,6 +31,9 @@ app.use(morgan('combined'));
 // Parser JSON
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Passport OAuth
+app.use(passport.initialize());
 
 // Rate limiting API
 const apiLimiter = rateLimit({
