@@ -98,6 +98,26 @@
 | 14.7 | Paramètres du profil professionnel | ✅ | `frontend/src/app/dashboard/pro/settings/page.tsx` — Infos entreprise, adresse, services |
 | 14.8 | Gestion de l'abonnement | ✅ | `frontend/src/app/dashboard/pro/subscription/page.tsx` — Plans gratuit/pro/premium, facturation |
 
+### Point de Vente (POS) — Quincaillerie
+
+#### Backend
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 14.9 | Modèle PosSale | ✅ | `backend/src/models/PosSale.ts` — Ventes POS avec items, totaux, paiement, client |
+| 14.10 | Contrôleur POS (CRUD ventes) | ✅ | `backend/src/controllers/PosController.ts` — Création, liste, détail, remboursement |
+| 14.11 | Gestion de stock (ajustement, alertes) | ✅ | `PosController.adjustStock` + `getStockList` — Ajustement stock, produits en stock faible |
+| 14.12 | Dashboard POS (statistiques jour/mois) | ✅ | `PosController.getDashboard` — Ventes jour/mois, stock faible, dernières ventes |
+| 14.13 | Recherche rapide produits POS | ✅ | `PosController.searchProducts` — Recherche par nom/SKU pour la caisse |
+| 14.14 | Routes POS | ✅ | `backend/src/routes/posRoutes.ts` — `/api/pos/*` (auth pro requise) |
+
+#### Frontend
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 14.15 | Caisse enregistreuse POS | ✅ | `frontend/src/app/dashboard/pro/pos/page.tsx` — Recherche produits, panier, paiement (espèces/carte/chèque), ticket |
+| 14.16 | Gestion des stocks | ✅ | `frontend/src/app/dashboard/pro/pos/stock/page.tsx` — Tableau de stock, ajustement, alertes rupture/faible |
+| 14.17 | Historique des ventes | ✅ | `frontend/src/app/dashboard/pro/pos/sales/page.tsx` — Liste ventes, filtres, détail, stats CA |
+| 14.18 | Lien POS dans le dashboard pro | ✅ | Bouton « Point de Vente (POS) » dans les actions rapides du dashboard pro |
+
 ---
 
 ## 15. Commandes & Paiements
@@ -223,7 +243,7 @@
 | Avis & Évaluations | 100% |
 | Recherche Globale | 80% |
 | Tableau de Bord Utilisateur | 100% |
-| Tableau de Bord Professionnel | 100% |
+| Tableau de Bord Professionnel + POS | 100% |
 | Commandes & Paiements | 50% |
 | Notifications | 65% |
 | Pages Statiques & SEO | 100% |
