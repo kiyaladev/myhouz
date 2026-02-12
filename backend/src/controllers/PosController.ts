@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import PosSale from '../models/PosSale';
 import Product from '../models/Product';
 
@@ -76,7 +77,7 @@ export class PosController {
       const total = subtotal + tax - discount;
 
       // Générer un numéro de vente unique
-      const saleNumber = `POS-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      const saleNumber = `POS-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
       // Calculer la monnaie à rendre si paiement en espèces
       let changeGiven = 0;
