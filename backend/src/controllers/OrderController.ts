@@ -726,7 +726,7 @@ export class OrderController {
 
       await sendEmail(customer.email, `Confirmation de commande ${order.orderNumber}`, html);
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de l\'email de confirmation:', error);
+      console.error('Erreur lors de l\'envoi de l\'email de confirmation pour la commande', order.orderNumber, ':', error);
     }
   }
 }
