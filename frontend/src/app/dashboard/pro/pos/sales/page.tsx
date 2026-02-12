@@ -354,7 +354,7 @@ export default function SalesHistoryPage() {
                     </Button>
                     {selectedSale.status === 'completed' && (
                       <>
-                        <Link href="/dashboard/pro/pos/invoices" className="flex-1">
+                        <Link href={`/dashboard/pro/pos/invoices?saleId=${selectedSale.id}&create=true`} className="flex-1">
                           <Button variant="outline" className="w-full">
                             <FileText className="h-4 w-4 mr-2" />
                             Facture

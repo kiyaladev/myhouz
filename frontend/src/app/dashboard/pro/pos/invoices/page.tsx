@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -580,11 +581,19 @@ function InvoiceDetailModal({ invoice, onClose }: InvoiceDetailModalProps) {
 }
 
 // --- Main Page ---
-export default function InvoicesPage() {
+function InvoicesPageContent() {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+
+  // Auto-open create modal if ?create=true is in URL
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setShowCreate(true);
+    }
+  }, [searchParams]);
 
   const filteredInvoices = useMemo(() => {
     return mockInvoices.filter((inv) => {
@@ -792,5 +801,13 @@ export default function InvoicesPage() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function InvoicesPage() {
+  return (
+    <Suspense fallback={<Layout><div className="bg-gray-50 min-h-screen" /></Layout>}>
+      <InvoicesPageContent />
+    </Suspense>
   );
 }
