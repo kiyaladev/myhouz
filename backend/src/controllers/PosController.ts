@@ -661,7 +661,7 @@ export class PosController {
             salesCount: salesStats[0]?.salesCount || 0,
             avgBasket: salesStats[0]?.avgBasket || 0,
             totalItems: salesStats[0]?.totalItems || 0,
-            margin: (salesStats[0]?.totalRevenue || 0) - (salesStats[0]?.totalTax || 0)
+            revenueHT: (salesStats[0]?.totalRevenue || 0) - (salesStats[0]?.totalTax || 0)
           },
           dailySales,
           topProducts,
