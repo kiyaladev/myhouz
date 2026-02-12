@@ -13,6 +13,7 @@ import notificationRoutes from './notificationRoutes';
 import searchRoutes from './searchRoutes';
 import cartRoutes from './cartRoutes';
 import quoteRoutes from './quoteRoutes';
+import posRoutes from './posRoutes';
 import wishlistRoutes from './wishlistRoutes';
 
 const router = Router();
@@ -32,6 +33,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/search', searchRoutes);
 router.use('/cart', cartRoutes);
 router.use('/quotes', quoteRoutes);
+router.use('/pos', posRoutes);
 router.use('/wishlists', wishlistRoutes);
 
 // Route de test
@@ -58,7 +60,8 @@ router.get('/health', (req, res) => {
       'Articles de blog et conseils',
       'Forum communautaire',
       'Messagerie entre utilisateurs',
-      'Système de commandes e-commerce'
+      'Système de commandes e-commerce',
+      'Point de vente (POS) avec gestion de stocks'
     ]
   });
 });
