@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../components/layout/Layout';
 import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/card';
@@ -215,10 +216,13 @@ export default function ArticlesPage() {
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200 mb-8">
                     <div className="grid grid-cols-1 md:grid-cols-2">
                       <div className="relative h-64 md:h-auto">
-                        <img
+                        <Image
                           src={featured.coverImage}
                           alt={featured.title}
                           className="w-full h-full object-cover"
+                          width={600}
+                          height={256}
+                          unoptimized
                         />
                       </div>
                       <CardContent className="p-6 md:p-8 flex flex-col justify-center">
@@ -261,10 +265,13 @@ export default function ArticlesPage() {
                   <Card key={article._id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                     <Link href={`/articles/${article.slug}`}>
                       <div className="relative">
-                        <img
+                        <Image
                           src={article.coverImage}
                           alt={article.title}
                           className="w-full h-48 object-cover"
+                          width={400}
+                          height={192}
+                          unoptimized
                         />
                         <Badge className="absolute top-3 left-3 bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
                           {categoryLabels[article.category] || article.category}

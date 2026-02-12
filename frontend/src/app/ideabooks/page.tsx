@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../components/layout/Layout';
 import { api } from '../../lib/api';
 import { Card } from '../../components/ui/card';
@@ -136,10 +137,13 @@ export default function IdeabooksPage() {
                 <Card key={ideabook._id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                   <Link href={`/ideabooks/${ideabook._id}`} aria-label={`Voir le carnet : ${ideabook.title}`}>
                     <div className="relative">
-                      <img
+                      <Image
                         src={ideabook.coverImage}
                         alt={ideabook.title}
                         className="w-full h-48 object-cover"
+                        width={400}
+                        height={192}
+                        unoptimized
                       />
                       <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2">
                         {ideabook.isPublic ? (

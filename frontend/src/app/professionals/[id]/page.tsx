@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
@@ -282,10 +283,13 @@ export default function ProfessionalDetailPage() {
                       {projects.map((project) => (
                         <Link key={project._id} href={`/projects/${project._id}`}>
                           <div className="group relative overflow-hidden rounded-lg">
-                            <img
+                            <Image
                               src={project.images[0]?.url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop'}
                               alt={project.title}
                               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                              width={400}
+                              height={192}
+                              unoptimized
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             <div className="absolute bottom-0 left-0 right-0 p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">

@@ -3,14 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { Heart, Bookmark, Expand, MessageCircle, ShoppingBag } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
-import Lightbox from '../../../components/ui/lightbox';
-import SaveToIdeabookModal from '../../../components/SaveToIdeabookModal';
+const Lightbox = dynamic(() => import('../../../components/ui/lightbox'), { ssr: false });
+const SaveToIdeabookModal = dynamic(() => import('../../../components/SaveToIdeabookModal'));
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface TaggedProduct {
@@ -213,11 +215,14 @@ export default function ProjectDetailPage() {
               {/* Image Gallery */}
               <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
                 <div className="relative group">
-                  <img
+                  <Image
                     src={project.images[selectedImage]?.url || project.images[0]?.url}
                     alt={project.images[selectedImage]?.caption || project.title}
                     className="w-full h-96 object-cover cursor-pointer"
+                    width={800}
+                    height={384}
                     onClick={() => setIsLightboxOpen(true)}
+                    unoptimized
                   />
                   {/* Image overlay actions */}
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -274,7 +279,7 @@ export default function ProjectDetailPage() {
                             className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 transition-colors"
                           >
                             {product.images?.[0] && (
-                              <img src={product.images[0]} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                              <Image src={product.images[0]} alt={product.name} width={40} height={40} className="w-10 h-10 rounded object-cover" />
                             )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
@@ -296,10 +301,13 @@ export default function ProjectDetailPage() {
                           selectedImage === idx ? 'border-emerald-500' : 'border-transparent'
                         }`}
                       >
-                        <img
+                        <Image
                           src={img.url}
                           alt={img.caption || `Photo ${idx + 1}`}
                           className="w-full h-full object-cover"
+                          width={80}
+                          height={80}
+                          unoptimized
                         />
                       </button>
                     ))}

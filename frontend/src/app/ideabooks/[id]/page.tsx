@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { GripVertical } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
@@ -219,10 +220,13 @@ export default function IdeabookDetailPage() {
           {/* Header */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
             <div className="relative">
-              <img
+              <Image
                 src={ideabook.coverImage}
                 alt={ideabook.title}
                 className="w-full h-64 sm:h-80 object-cover"
+                width={800}
+                height={320}
+                unoptimized
               />
             </div>
             <div className="p-6 sm:p-8">
@@ -373,10 +377,13 @@ export default function IdeabookDetailPage() {
                       <GripVertical className="w-4 h-4 text-gray-500" />
                     </div>
                   )}
-                  <img
+                  <Image
                     src={getItemImage(item)}
                     alt={getItemTitle(item)}
                     className={`w-full h-48 object-cover ${isDragMode ? 'pointer-events-none' : ''}`}
+                    width={400}
+                    height={192}
+                    unoptimized
                   />
                   <div className="absolute top-4 left-4">
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${getItemTypeBadgeClass(item.itemType)}`}>
