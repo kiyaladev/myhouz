@@ -11,7 +11,7 @@
 |---|-------|--------|---------|
 | 10.1 | Modèle Message / Conversation | ✅ | `backend/src/models/Message.ts` |
 | 10.2 | CRUD messages et conversations | ✅ | `MessageController` |
-| 10.3 | Temps réel avec WebSocket (Socket.io) | ❌ | Notifications et messages instantanés |
+| 10.3 | Temps réel avec WebSocket (Socket.io) | ✅ | `backend/src/services/socketService.ts` — JWT auth, rooms, typing indicators |
 | 10.4 | Marquage lu / non lu | ✅ | `MessageController.markConversationAsRead` + `getUnreadCount` |
 | 10.5 | Pièces jointes dans les messages | ❌ | Upload d'images dans la conversation |
 
@@ -229,9 +229,9 @@
 |---|-------|--------|---------|
 | 20.1 | Tests unitaires backend (Jest / Vitest) | ✅ | `backend/src/__tests__/` — Jest + ts-jest configuré, tests health + search |
 | 20.2 | Tests d'intégration API (Supertest) | ✅ | 5 tests passants via Supertest sur les endpoints health et search |
-| 20.3 | Tests unitaires frontend (Jest / React Testing Library) | ❌ | Composants UI |
+| 20.3 | Tests unitaires frontend (Jest / React Testing Library) | ✅ | `frontend/src/__tests__/` — 52 tests, 9 suites (Button, Badge, Input, Card, Alert, EmptyState, Pagination, Progress, utils) |
 | 20.4 | Tests end-to-end (Cypress / Playwright) | ❌ | Parcours utilisateur complets |
-| 20.5 | Configuration CI pour les tests | ✅ | `.github/workflows/ci.yml` — GitHub Actions : build + test backend, lint + build frontend |
+| 20.5 | Configuration CI pour les tests | ✅ | `.github/workflows/ci.yml` — GitHub Actions : build + test backend, lint + build + test frontend |
 
 ---
 
@@ -239,7 +239,7 @@
 
 | Module | Progression estimée |
 |--------|-------------------|
-| Messagerie | 50% |
+| Messagerie | 80% |
 | Avis & Évaluations | 100% |
 | Recherche Globale | 80% |
 | Tableau de Bord Utilisateur | 100% |
@@ -249,5 +249,5 @@
 | Pages Statiques & SEO | 100% |
 | Design System & UI | 85% |
 | Performance & Optimisation | 50% |
-| Tests | 60% |
+| Tests | 75% |
 | **Moyenne sections 10–20** | **~82%** |
