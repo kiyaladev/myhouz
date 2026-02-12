@@ -58,7 +58,7 @@ export default function Header() {
         });
         const data = await res.json();
         if (data.success && data.data) {
-          setNotifications(data.data.map((n: any) => ({
+          setNotifications(data.data.map((n: { _id: string; type: string; title: string; content: string; read: boolean; createdAt: string; link?: string }) => ({
             id: n._id,
             type: n.type,
             title: n.title,

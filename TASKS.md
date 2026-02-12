@@ -19,19 +19,19 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 | Ideabooks | ✅ 95% |
 | Articles & Magazine | ✅ 95% |
 | Forum / Discussions | ✅ 95% |
-| Messagerie | 🟡 50% |
+| Messagerie | ✅ 95% |
 | Avis & Évaluations | ✅ 100% |
 | Recherche Globale | ✅ 80% |
 | Tableaux de Bord | ✅ 100% |
 | Commandes & Paiements | ✅ 100% |
-| Notifications | ✅ 75% |
+| Notifications | ✅ 95% |
 | Pages Statiques & SEO | ✅ 100% |
-| Design System & UI | ✅ 90% |
-| Performance & Optimisation | ✅ 85% |
+| Design System & UI | ✅ 100% |
+| Performance & Optimisation | ✅ 95% |
 | Tests | 🟡 60% |
-| Déploiement & CI/CD | ✅ 85% |
+| Déploiement & CI/CD | ✅ 95% |
 | POS & Gestion Quincaillerie | ✅ 100% |
-| **TOTAL GLOBAL** | **~90%** |
+| **TOTAL GLOBAL** | **~95%** |
 
 ---
 
@@ -196,25 +196,28 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 
 ---
 
-## 10. Messagerie 🟡
+## 10. Messagerie ✅
 
 ### Backend ✅
 - Modèle Message + Conversation
 - CRUD complet
 - Marquage lu/non lu
 - Compteur non lus
+- **NotificationService** : création automatique de notifications à chaque message
+- **Emails** : notification par email aux destinataires
 
 ### Frontend ✅
-- Page inbox avec liste conversations
-- Vue chat style messagerie
+- Page inbox avec liste conversations (API intégrée)
+- Vue chat style messagerie (API intégrée)
 - Indicateur badge non lus
+- Polling automatique (5s messages, 15s conversations)
+- Loading states et empty states
+- Responsive mobile-first (vue liste ↔ vue chat)
 
-### À faire ❌
-- WebSocket (Socket.io) pour temps réel
-- Pièces jointes
-- Notifications instantanées
+### À améliorer ❌
+- WebSocket (Socket.io) pour temps réel (actuellement polling)
 
-**Fichiers**: `backend/src/models/Message.ts`, `MessageController.ts`, `frontend/src/app/messages/`
+**Fichiers**: `backend/src/models/Message.ts`, `MessageController.ts`, `notificationService.ts`, `frontend/src/app/messages/`
 
 ---
 
@@ -312,16 +315,18 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 - Modèle Notification avec types multiples
 - Statuts: unread, read, archived
 - Routes: liste, marquer lues, supprimer
-- Email notifications (commandes, messages)
+- **NotificationService** : création automatique sur événements (messages, avis, commandes)
+- Email notifications (templates HTML : commandes, messages, avis, devis, ideabooks)
 
 ### Frontend
-- Dropdown header avec badge compteur
-- Liste notifications avec filtres
-- Marquage automatique comme lues
+- Dropdown header avec badge compteur (API intégrée, polling 30s)
+- Page notifications avec filtres par type (API intégrée)
+- Page dashboard notifications (API intégrée)
+- Marquage lu / tout marquer comme lu
 
-**Fichiers**: `backend/src/models/Notification.ts`, `NotificationController.ts`
+**Fichiers**: `backend/src/models/Notification.ts`, `NotificationController.ts`, `notificationService.ts`, `notificationEmailService.ts`
 
-**À améliorer**: Notifications push, préférences utilisateur
+**À améliorer**: Notifications push navigateur, préférences utilisateur
 
 ---
 
@@ -346,11 +351,12 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 
 ### Composants UI
 **Base**: Button, Input, Textarea, Select, Checkbox, Label, Badge, Card, Avatar, Dialog, Dropdown, Tabs, Tooltip
-**Avancés**: Lightbox, Rich Editor, MasonryGrid, DatePicker, Map
-**Layout**: Header, Footer, Sidebar
+**Feedback**: Toast (provider + hook), Alert (info/success/warning/error), Progress (variants + sizes), EmptyState
+**Avancés**: Lightbox, Rich Editor, MasonryGrid, DatePicker, Map, Carousel, Pagination, Skeleton, ConfirmDialog, Rating
+**Layout**: Header, Footer, Sidebar, Breadcrumb
 
 ### Design
-- Tailwind CSS avec palette cohérente
+- Tailwind CSS avec palette cohérente (emerald primary)
 - Dark mode support
 - Responsive mobile-first
 - Animations Framer Motion
@@ -367,12 +373,13 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 | Images Next.js | ✅ | Component Image avec remotePatterns |
 | Lazy loading | ✅ | React.lazy() + Suspense |
 | Code splitting | ✅ | Dynamic imports Next.js |
-| Compression | ✅ | Gzip côté serveur |
-| Caching | ✅ | Headers cache API |
+| Compression | ✅ | Gzip côté serveur + nginx |
+| API Caching | ✅ | In-memory cache middleware (GET publics, TTL configurable) |
 | Bundle optimization | ✅ | Next.js automatic |
 | Database indexes | ✅ | MongoDB indexes (geo, text, composite) |
+| Static assets | ✅ | Cache longue durée via nginx (365j pour _next/static) |
 
-**Fichiers**: `frontend/next.config.ts`, `backend/src/models/*.ts` (indexes)
+**Fichiers**: `frontend/next.config.ts`, `backend/src/middleware/cache.ts`, `backend/src/models/*.ts` (indexes), `nginx/nginx.conf`
 
 ---
 
@@ -397,7 +404,8 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 ### Docker ✅
 - **Backend**: Multi-stage Node 20 Alpine (`backend/Dockerfile`)
 - **Frontend**: Multi-stage Next.js standalone (`frontend/Dockerfile`)
-- **Compose**: 4 services (mongodb, minio, backend, frontend)
+- **Compose Dev**: 4 services (mongodb, minio, backend, frontend)
+- **Compose Prod**: 5 services + nginx reverse proxy (`docker-compose.prod.yml`)
 
 ### CI/CD ✅
 - **GitHub Actions**: `.github/workflows/ci.yml`
@@ -406,12 +414,17 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
   - Frontend: lint, build
 - **Trigger**: push/PR sur main
 
-### À faire ❌
-- Déploiement production (Vercel/Railway/AWS)
-- Monitoring (Sentry, logs)
-- Backups automatiques
+### Production (Contabo VPS) ✅
+- **Nginx**: Reverse proxy avec SSL, gzip, rate limiting, cache statique (`nginx/nginx.conf`)
+- **SSL**: Let's Encrypt avec auto-renouvellement
+- **Deploy script**: `deploy.sh` (setup, deploy, ssl, backup, logs, status)
+- **Backups**: MongoDB dump automatisé, rétention 7 jours
+- **Sécurité**: UFW firewall, services sur 127.0.0.1 uniquement, headers sécurité
 
-**Fichiers**: `docker-compose.yml`, `Dockerfile`, `.github/workflows/ci.yml`
+### À faire ❌
+- Monitoring (Sentry, logs centralisés)
+
+**Fichiers**: `docker-compose.yml`, `docker-compose.prod.yml`, `nginx/nginx.conf`, `deploy.sh`, `.github/workflows/ci.yml`
 
 ---
 
@@ -502,17 +515,20 @@ Module complet de Point de Vente pour professionnels avec gestion d'entreprise.
 - Articles / Magazine
 - POS & Gestion Quincaillerie (caisse, stocks, factures)
 
-### Phase 4 — Qualité & Production 🟡 EN COURS (85%)
+### Phase 4 — Qualité & Production 🟡 EN COURS (95%)
 **Complété**:
-- ✅ Optimisation performance (images, lazy loading)
+- ✅ Optimisation performance (images, lazy loading, API caching)
 - ✅ SEO et pages statiques
 - ✅ Déploiement Docker + CI/CD GitHub Actions
+- ✅ Messagerie connectée à l'API (polling temps réel)
+- ✅ Notifications connectées à l'API + NotificationService
+- ✅ Design System complet (25+ composants UI)
+- ✅ Déploiement production Contabo (nginx, SSL, backups)
 
 **Restant**:
 - ❌ Tests frontend complets (Jest + RTL + E2E)
 - ❌ Monitoring production (Sentry, logs centralisés)
-- ❌ Déploiement production (Vercel/Railway/AWS)
-- ❌ Messagerie temps réel (WebSocket)
+- ❌ WebSocket (Socket.io) pour messagerie temps réel
 
 ---
 
@@ -556,13 +572,16 @@ npm run seed        # Populate demo data (backend)
 **Frontend**:
 - Next.js 15 (App Router) + React 19
 - TypeScript + Tailwind CSS
-- Stripe React + Socket.io (prévu)
+- Stripe React
 - Framer Motion + Lucide Icons
 
 **DevOps**:
 - Docker + Docker Compose
+- Nginx (reverse proxy + SSL)
 - GitHub Actions (CI)
 - Jest (tests backend)
+- Let's Encrypt (SSL)
+- Contabo VPS (production)
 
 ---
 
@@ -570,13 +589,37 @@ npm run seed        # Populate demo data (backend)
 
 1. **Tests Frontend** — Jest + React Testing Library + E2E
 2. **Monitoring Production** — Sentry error tracking + logs
-3. **Déploiement** — Configuration Vercel/Railway + env production
-4. **Messagerie Temps Réel** — WebSocket Socket.io
-5. **Performance** — Lighthouse audit + optimisations
-6. **SEO Avancé** — Schema.org + Open Graph complet
+3. **WebSocket** — Socket.io pour messagerie temps réel
+4. **SEO Avancé** — Schema.org + Open Graph complet
+
+---
+
+## Déploiement Contabo
+
+```bash
+# 1. Setup initial du serveur
+scp deploy.sh user@your-contabo-ip:/tmp/
+ssh user@your-contabo-ip "chmod +x /tmp/deploy.sh && /tmp/deploy.sh setup"
+
+# 2. Configurer les variables d'environnement
+ssh user@your-contabo-ip "nano /opt/myhouz/.env.production"
+
+# 3. Configurer SSL
+ssh user@your-contabo-ip "cd /opt/myhouz && ./deploy.sh ssl"
+
+# 4. Déployer
+ssh user@your-contabo-ip "cd /opt/myhouz && ./deploy.sh deploy"
+
+# 5. Vérifier
+ssh user@your-contabo-ip "cd /opt/myhouz && ./deploy.sh status"
+
+# 6. Backup quotidien (ajouter au cron)
+ssh user@your-contabo-ip "cd /opt/myhouz && ./deploy.sh backup"
+```
 
 ---
 
 **Document mis à jour** : Février 2026  
-**Progression totale** : ~90%  
-**Statut** : Plateforme production-ready, modules avancés complétés
+**Progression totale** : ~95%  
+**Statut** : Plateforme production-ready, déploiement Contabo configuré
+**Hébergement** : Contabo VPS (Docker + Nginx + SSL)
