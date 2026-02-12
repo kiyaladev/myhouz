@@ -92,7 +92,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             profile.photos?.[0]?.value
           );
 
-          return done(null, user);
+          return done(null, user as any);
         } catch (error) {
           console.error('Erreur lors de l\'authentification Google:', error);
           return done(error as Error);
@@ -128,7 +128,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
             profile.photos?.[0]?.value
           );
 
-          return done(null, user);
+          return done(null, user as any);
         } catch (error) {
           console.error('Erreur lors de l\'authentification Facebook:', error);
           return done(error as Error);

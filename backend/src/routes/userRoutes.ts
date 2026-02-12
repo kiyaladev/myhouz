@@ -38,7 +38,7 @@ router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 
 router.get('/auth/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/login?error=google_failed` }),
   (req, res) => {
-    const user = req.user as IUser;
+    const user = req.user as unknown as IUser;
     const { token, refreshToken } = generateTokens(user._id as string, user.userType);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
@@ -50,7 +50,7 @@ router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'
 router.get('/auth/facebook/callback',
   passport.authenticate('facebook', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/login?error=facebook_failed` }),
   (req, res) => {
-    const user = req.user as IUser;
+    const user = req.user as unknown as IUser;
     const { token, refreshToken } = generateTokens(user._id as string, user.userType);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     res.redirect(`${frontendUrl}/auth/callback?token=${encodeURIComponent(token)}&refreshToken=${encodeURIComponent(refreshToken)}`);
