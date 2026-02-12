@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import crypto from 'crypto';
 import PosSale from '../models/PosSale';
 import Product from '../models/Product';
+import Notification from '../models/Notification';
 
 export class PosController {
   // Créer une vente POS
@@ -475,6 +476,254 @@ export class PosController {
         success: false,
         message: 'Erreur interne du serveur'
       });
+    }
+  }
+
+  // Recherche par code-barres (22.44)
+  static async searchByBarcode(req: Request, res: Response): Promise<void> {
+    try {
+      const sellerId = req.user!.userId;
+      const barcode = req.query.code as string;
+
+      if (!barcode) {
+        res.json({ success: true, data: [] });
+        return;
+      }
+
+      const product = await Product.findOne({
+        seller: sellerId,
+        barcode: barcode,
+        status: { $in: ['active', 'out-of-stock'] }
+      }).select('name price.amount inventory.quantity inventory.sku category images barcode');
+
+      if (!product) {
+        res.json({ success: true, data: [] });
+        return;
+      }
+
+      res.json({ success: true, data: [product] });
+    } catch (error) {
+      console.error('Erreur lors de la recherche par code-barres:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
+  // Vérifier les alertes de réapprovisionnement (22.43)
+  static async checkRestockAlerts(req: Request, res: Response): Promise<void> {
+    try {
+      const sellerId = req.user!.userId;
+      const threshold = parseInt(req.query.threshold as string) || 5;
+
+      const lowStockProducts = await Product.find({
+        seller: sellerId,
+        'inventory.trackInventory': true,
+        'inventory.quantity': { $lte: threshold }
+      }).select('name inventory.quantity inventory.sku category status');
+
+      // Créer des notifications pour les produits en rupture ou faible
+      const alerts = [];
+      for (const product of lowStockProducts) {
+        const isOutOfStock = product.inventory.quantity === 0;
+        alerts.push({
+          product: product._id,
+          name: product.name,
+          sku: product.inventory.sku,
+          quantity: product.inventory.quantity,
+          level: isOutOfStock ? 'critical' : 'warning',
+          message: isOutOfStock
+            ? `${product.name} est en rupture de stock`
+            : `${product.name} — stock faible (${product.inventory.quantity} restants)`
+        });
+
+        // Créer une notification système
+        await Notification.findOneAndUpdate(
+          {
+            recipient: sellerId,
+            type: 'system',
+            'metadata.productId': (product._id as mongoose.Types.ObjectId).toString(),
+            'metadata.alertType': 'restock',
+            read: false
+          },
+          {
+            recipient: sellerId,
+            type: 'system',
+            title: isOutOfStock ? 'Rupture de stock' : 'Stock faible',
+            content: isOutOfStock
+              ? `${product.name} (${product.inventory.sku}) est en rupture de stock. Réapprovisionnement nécessaire.`
+              : `${product.name} (${product.inventory.sku}) n'a plus que ${product.inventory.quantity} unités en stock.`,
+            link: '/dashboard/pro/pos/stock',
+            metadata: { productId: (product._id as mongoose.Types.ObjectId).toString(), alertType: 'restock', quantity: product.inventory.quantity }
+          },
+          { upsert: true, new: true }
+        );
+      }
+
+      res.json({
+        success: true,
+        data: {
+          totalAlerts: alerts.length,
+          critical: alerts.filter(a => a.level === 'critical').length,
+          warning: alerts.filter(a => a.level === 'warning').length,
+          alerts
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la vérification des alertes:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
+  // Rapports financiers (22.45)
+  static async getFinancialReports(req: Request, res: Response): Promise<void> {
+    try {
+      const sellerId = req.user!.userId;
+      const sellerObjectId = new mongoose.Types.ObjectId(sellerId);
+      const period = (req.query.period as string) || 'month';
+
+      const now = new Date();
+      let startDate: Date;
+
+      if (period === 'day') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else if (period === 'week') {
+        startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 7);
+      } else {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      }
+
+      const [salesStats, dailySales, topProducts, paymentBreakdown] = await Promise.all([
+        // Stats globales de la période
+        PosSale.aggregate([
+          { $match: { seller: sellerObjectId, createdAt: { $gte: startDate }, status: 'completed' } },
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$totals.total' },
+              totalTax: { $sum: '$totals.tax' },
+              totalDiscount: { $sum: '$totals.discount' },
+              salesCount: { $sum: 1 },
+              avgBasket: { $avg: '$totals.total' },
+              totalItems: { $sum: { $size: '$items' } }
+            }
+          }
+        ]),
+        // Ventes par jour
+        PosSale.aggregate([
+          { $match: { seller: sellerObjectId, createdAt: { $gte: startDate }, status: 'completed' } },
+          {
+            $group: {
+              _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+              revenue: { $sum: '$totals.total' },
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { _id: 1 } }
+        ]),
+        // Top produits vendus
+        PosSale.aggregate([
+          { $match: { seller: sellerObjectId, createdAt: { $gte: startDate }, status: 'completed' } },
+          { $unwind: '$items' },
+          {
+            $group: {
+              _id: '$items.product',
+              name: { $first: '$items.name' },
+              totalQuantity: { $sum: '$items.quantity' },
+              totalRevenue: { $sum: '$items.total' }
+            }
+          },
+          { $sort: { totalRevenue: -1 } },
+          { $limit: 10 }
+        ]),
+        // Répartition par mode de paiement
+        PosSale.aggregate([
+          { $match: { seller: sellerObjectId, createdAt: { $gte: startDate }, status: 'completed' } },
+          {
+            $group: {
+              _id: '$payment.method',
+              count: { $sum: 1 },
+              total: { $sum: '$totals.total' }
+            }
+          }
+        ])
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          period,
+          startDate,
+          endDate: now,
+          summary: {
+            totalRevenue: salesStats[0]?.totalRevenue || 0,
+            totalTax: salesStats[0]?.totalTax || 0,
+            totalDiscount: salesStats[0]?.totalDiscount || 0,
+            salesCount: salesStats[0]?.salesCount || 0,
+            avgBasket: salesStats[0]?.avgBasket || 0,
+            totalItems: salesStats[0]?.totalItems || 0,
+            margin: (salesStats[0]?.totalRevenue || 0) - (salesStats[0]?.totalTax || 0)
+          },
+          dailySales,
+          topProducts,
+          paymentBreakdown
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération des rapports financiers:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
+  // Export comptable FEC/CSV (22.49)
+  static async exportAccounting(req: Request, res: Response): Promise<void> {
+    try {
+      const sellerId = req.user!.userId;
+      const format = (req.query.format as string) || 'csv';
+      const { dateFrom, dateTo } = req.query;
+
+      const filter: Record<string, unknown> = { seller: sellerId, status: 'completed' };
+      if (dateFrom || dateTo) {
+        filter.createdAt = {};
+        if (dateFrom) (filter.createdAt as Record<string, unknown>).$gte = new Date(dateFrom as string);
+        if (dateTo) (filter.createdAt as Record<string, unknown>).$lte = new Date(dateTo as string);
+      }
+
+      const sales = await PosSale.find(filter).sort({ createdAt: 1 });
+
+      if (format === 'fec') {
+        // Format FEC (Fichier des Écritures Comptables)
+        const header = 'JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|CompteLib|CompAuxNum|CompAuxLib|PieceRef|PieceDate|EcritureLib|Debit|Credit|EcritureLet|DateLet|ValidDate|Montantdevise|Idevise';
+        const lines = sales.map((sale, index) => {
+          const date = new Date(sale.createdAt).toISOString().split('T')[0].replace(/-/g, '');
+          const num = String(index + 1).padStart(6, '0');
+          return [
+            `VE|Ventes|${num}|${date}|411000|Clients|${sale.customer?.name || 'COMPTOIR'}||${sale.saleNumber}|${date}|${sale.saleNumber}|${sale.totals.total.toFixed(2)}|0.00||||${sale.totals.total.toFixed(2)}|EUR`,
+            `VE|Ventes|${num}|${date}|707000|Ventes de marchandises|||${sale.saleNumber}|${date}|${sale.saleNumber}|0.00|${sale.totals.subtotal.toFixed(2)}||||${sale.totals.subtotal.toFixed(2)}|EUR`,
+            `VE|Ventes|${num}|${date}|445710|TVA collectée|||${sale.saleNumber}|${date}|${sale.saleNumber}|0.00|${sale.totals.tax.toFixed(2)}||||${sale.totals.tax.toFixed(2)}|EUR`
+          ].join('\n');
+        });
+
+        const content = [header, ...lines].join('\n');
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename=FEC_export.txt');
+        res.send(content);
+      } else {
+        // Format CSV
+        const header = 'Date,N° Vente,Client,Mode Paiement,Sous-total,TVA,Remise,Total,Devise';
+        const lines = sales.map(sale => {
+          const date = new Date(sale.createdAt).toLocaleDateString('fr-FR');
+          const customerName = (sale.customer?.name || 'Comptoir').replace(/,/g, ' ');
+          return `${date},${sale.saleNumber},${customerName},${sale.payment.method},${sale.totals.subtotal.toFixed(2)},${sale.totals.tax.toFixed(2)},${sale.totals.discount.toFixed(2)},${sale.totals.total.toFixed(2)},${sale.totals.currency}`;
+        });
+
+        const content = [header, ...lines].join('\n');
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename=ventes_export.csv');
+        res.send(content);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'export comptable:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
     }
   }
 }
