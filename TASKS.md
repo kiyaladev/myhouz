@@ -214,8 +214,8 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 - Loading states et empty states
 - Responsive mobile-first (vue liste ↔ vue chat)
 
-### À améliorer ❌
-- WebSocket (Socket.io) pour temps réel (actuellement polling)
+### À améliorer ✅
+- ✅ WebSocket (Socket.io) pour temps réel (JWT auth, rooms, typing indicators)
 
 **Fichiers**: `backend/src/models/Message.ts`, `MessageController.ts`, `notificationService.ts`, `frontend/src/app/messages/`
 
@@ -528,7 +528,7 @@ Module complet de Point de Vente pour professionnels avec gestion d'entreprise.
 **Restant**:
 - ❌ Tests frontend complets (Jest + RTL + E2E)
 - ❌ Monitoring production (Sentry, logs centralisés)
-- ❌ WebSocket (Socket.io) pour messagerie temps réel
+- ✅ WebSocket (Socket.io) pour messagerie temps réel
 
 ---
 
@@ -589,7 +589,7 @@ npm run seed        # Populate demo data (backend)
 
 1. **Tests Frontend** — Jest + React Testing Library + E2E
 2. **Monitoring Production** — Sentry error tracking + logs
-3. **WebSocket** — Socket.io pour messagerie temps réel
+3. ~~**WebSocket** — Socket.io pour messagerie temps réel~~ ✅
 4. **SEO Avancé** — Schema.org + Open Graph complet
 
 ---

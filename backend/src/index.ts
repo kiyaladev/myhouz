@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -7,12 +8,17 @@ import passport from 'passport';
 import { connectDB } from './config/database';
 import './config/passport';
 import apiRoutes from './routes';
+import { initSocketServer } from './services/socketService';
 
 // Charger les variables d'environnement
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Initialize Socket.io
+initSocketServer(httpServer);
 
 // Middlewares de sécurité
 app.use(helmet());
@@ -81,7 +87,7 @@ const startServer = async () => {
       console.warn('💡 Vérifiez que votre IP est autorisée dans MongoDB Atlas.');
     }
     
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`📍 URL: http://localhost:${PORT}`);
       console.log(`🌍 Environnement: ${process.env.NODE_ENV}`);
