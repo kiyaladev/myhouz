@@ -268,6 +268,27 @@ export class UserController {
         query['location.city'] = new RegExp(city as string, 'i');
       }
 
+      // Recherche géolocalisée par coordonnées
+      if (location) {
+        const [lat, lng] = (location as string).split(',').map(Number);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          query['location.coordinates'] = {
+            $near: {
+              $geometry: {
+                type: 'Point',
+                coordinates: [lng, lat]
+              },
+              $maxDistance: Number(radius) * 1000 // km vers mètres
+            }
+          };
+        }
+      }
+
+      // Filtrer par code postal
+      if (req.query.zipCode) {
+        query['location.zipCode'] = req.query.zipCode;
+      }
+
       // Filtrer par note minimum
       if (rating) {
         query['professionalInfo.rating.average'] = { $gte: Number(rating) };

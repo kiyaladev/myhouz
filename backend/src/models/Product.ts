@@ -50,6 +50,16 @@ export interface IProduct extends Document {
     totalReviews: number;
   };
   tags: string[];
+  variants: {
+    name: string;
+    options: {
+      value: string;
+      priceModifier?: number;
+      sku?: string;
+      quantity?: number;
+      image?: string;
+    }[];
+  }[];
   featured: boolean;
   status: 'draft' | 'active' | 'inactive' | 'out-of-stock';
   sales: number;
@@ -116,6 +126,16 @@ const ProductSchema: Schema = new Schema({
     totalReviews: { type: Number, default: 0 }
   },
   tags: [String],
+  variants: [{
+    name: { type: String, required: true },
+    options: [{
+      value: { type: String, required: true },
+      priceModifier: { type: Number, default: 0 },
+      sku: String,
+      quantity: Number,
+      image: String
+    }]
+  }],
   featured: { type: Boolean, default: false },
   status: { 
     type: String, 
