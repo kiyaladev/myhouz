@@ -3,7 +3,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import passport from 'passport';
 import { connectDB } from './config/database';
+import './config/passport';
 import apiRoutes from './routes';
 
 // Charger les variables d'environnement
@@ -25,6 +27,9 @@ app.use(morgan('combined'));
 // Parser JSON
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Passport OAuth
+app.use(passport.initialize());
 
 // Routes API
 app.use('/api', apiRoutes);

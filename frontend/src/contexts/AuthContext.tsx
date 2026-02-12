@@ -83,6 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await api.post<User>('/users/login', { email, password });
     if (response.success && response.token) {
       localStorage.setItem('token', response.token);
+      if (response.refreshToken) {
+        localStorage.setItem('refreshToken', response.refreshToken);
+      }
       setToken(response.token);
       setUser(response.data!);
     }
@@ -92,6 +95,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await api.post<User>('/users/register', data);
     if (response.success && response.token) {
       localStorage.setItem('token', response.token);
+      if (response.refreshToken) {
+        localStorage.setItem('refreshToken', response.refreshToken);
+      }
       setToken(response.token);
       setUser(response.data!);
     }
@@ -99,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     setToken(null);
     setUser(null);
   }, []);

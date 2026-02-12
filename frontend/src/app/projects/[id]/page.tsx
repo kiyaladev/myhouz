@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, Bookmark, Expand, MessageCircle } from 'lucide-react';
+import { Heart, Bookmark, Expand, MessageCircle, ShoppingBag } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
@@ -13,11 +13,19 @@ import Lightbox from '../../../components/ui/lightbox';
 import SaveToIdeabookModal from '../../../components/SaveToIdeabookModal';
 import { useAuth } from '../../../contexts/AuthContext';
 
+interface TaggedProduct {
+  _id: string;
+  name: string;
+  images: string[];
+  price: { amount: number; currency: string };
+  seo: { slug: string };
+}
+
 interface ProjectDetail {
   _id: string;
   title: string;
   description: string;
-  images: Array<{ url: string; caption?: string }>;
+  images: Array<{ url: string; caption?: string; products?: TaggedProduct[] }>;
   category: string;
   room: string;
   style: string[];
@@ -83,6 +91,7 @@ export default function ProjectDetailPage() {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [showProductTags, setShowProductTags] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -241,6 +250,39 @@ export default function ProjectDetailPage() {
                   {project.images.length > 1 && (
                     <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
                       {selectedImage + 1} / {project.images.length}
+                    </div>
+                  )}
+                  {/* Product tags indicator */}
+                  {project.images[selectedImage]?.products && project.images[selectedImage].products!.length > 0 && (
+                    <button
+                      onClick={() => setShowProductTags(!showProductTags)}
+                      className="absolute bottom-4 left-4 flex items-center gap-1 bg-white/90 hover:bg-white text-gray-800 text-sm px-3 py-1.5 rounded-full shadow transition-colors"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      {project.images[selectedImage].products!.length} produit{project.images[selectedImage].products!.length > 1 ? 's' : ''} tagué{project.images[selectedImage].products!.length > 1 ? 's' : ''}
+                    </button>
+                  )}
+                  {/* Product tags popover */}
+                  {showProductTags && project.images[selectedImage]?.products && project.images[selectedImage].products!.length > 0 && (
+                    <div className="absolute bottom-14 left-4 bg-white rounded-lg shadow-lg p-3 max-w-xs z-10">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">Produits sur cette photo</h4>
+                      <div className="space-y-2">
+                        {project.images[selectedImage].products!.map((product) => (
+                          <Link
+                            key={product._id}
+                            href={`/products/${product.seo?.slug || product._id}`}
+                            className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 transition-colors"
+                          >
+                            {product.images?.[0] && (
+                              <img src={product.images[0]} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                              <p className="text-sm text-emerald-600">{product.price?.amount} {product.price?.currency || '€'}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { Project, User } from '../models';
+import mongoose from 'mongoose';
+import { Project, Product, User } from '../models';
 
 export class ProjectController {
   // Créer un nouveau projet
@@ -251,6 +252,192 @@ export class ProjectController {
       });
     } catch (error) {
       console.error('Erreur lors du like:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Ajouter un tag produit sur une image
+  static async tagProductOnImage(req: Request, res: Response): Promise<void> {
+    try {
+      const { id, imageIndex } = req.params;
+      const { productId } = req.body;
+      const userId = (req as any).user.userId;
+
+      if (!productId) {
+        res.status(400).json({
+          success: false,
+          message: 'Le champ productId est requis'
+        });
+        return;
+      }
+
+      const project = await Project.findById(id);
+      if (!project) {
+        res.status(404).json({
+          success: false,
+          message: 'Projet non trouvé'
+        });
+        return;
+      }
+
+      if (project.professional.toString() !== userId) {
+        res.status(403).json({
+          success: false,
+          message: 'Non autorisé à modifier ce projet'
+        });
+        return;
+      }
+
+      const idx = Number(imageIndex);
+      if (isNaN(idx) || idx < 0 || idx >= project.images.length) {
+        res.status(400).json({
+          success: false,
+          message: 'Index d\'image invalide'
+        });
+        return;
+      }
+
+      const product = await Product.findById(productId);
+      if (!product) {
+        res.status(404).json({
+          success: false,
+          message: 'Produit non trouvé'
+        });
+        return;
+      }
+
+      const image = project.images[idx];
+      if (!image.products) {
+        image.products = [];
+      }
+
+      const alreadyTagged = image.products.some(
+        (p: mongoose.Types.ObjectId) => p.toString() === productId
+      );
+      if (alreadyTagged) {
+        res.status(409).json({
+          success: false,
+          message: 'Ce produit est déjà tagué sur cette image'
+        });
+        return;
+      }
+
+      image.products.push(new mongoose.Types.ObjectId(productId));
+      await project.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Produit tagué sur l\'image avec succès',
+        data: image
+      });
+    } catch (error) {
+      console.error('Erreur lors du tag produit sur l\'image:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Supprimer un tag produit d'une image
+  static async removeProductTag(req: Request, res: Response): Promise<void> {
+    try {
+      const { id, imageIndex, productId } = req.params;
+      const userId = (req as any).user.userId;
+
+      const project = await Project.findById(id);
+      if (!project) {
+        res.status(404).json({
+          success: false,
+          message: 'Projet non trouvé'
+        });
+        return;
+      }
+
+      if (project.professional.toString() !== userId) {
+        res.status(403).json({
+          success: false,
+          message: 'Non autorisé à modifier ce projet'
+        });
+        return;
+      }
+
+      const idx = Number(imageIndex);
+      if (isNaN(idx) || idx < 0 || idx >= project.images.length) {
+        res.status(400).json({
+          success: false,
+          message: 'Index d\'image invalide'
+        });
+        return;
+      }
+
+      const image = project.images[idx];
+      if (!image.products) {
+        image.products = [];
+      }
+
+      const productIndex = image.products.findIndex(
+        (p: mongoose.Types.ObjectId) => p.toString() === productId
+      );
+      if (productIndex === -1) {
+        res.status(404).json({
+          success: false,
+          message: 'Tag produit non trouvé sur cette image'
+        });
+        return;
+      }
+
+      image.products.splice(productIndex, 1);
+      await project.save();
+
+      res.json({
+        success: true,
+        message: 'Tag produit supprimé avec succès',
+        data: image
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression du tag produit:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Obtenir les produits tagués sur une image
+  static async getImageProducts(req: Request, res: Response): Promise<void> {
+    try {
+      const { id, imageIndex } = req.params;
+
+      const project = await Project.findById(id).populate('images.products');
+      if (!project) {
+        res.status(404).json({
+          success: false,
+          message: 'Projet non trouvé'
+        });
+        return;
+      }
+
+      const idx = Number(imageIndex);
+      if (isNaN(idx) || idx < 0 || idx >= project.images.length) {
+        res.status(400).json({
+          success: false,
+          message: 'Index d\'image invalide'
+        });
+        return;
+      }
+
+      const image = project.images[idx];
+
+      res.json({
+        success: true,
+        data: image.products || []
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des produits de l\'image:', error);
       res.status(500).json({
         success: false,
         message: 'Erreur interne du serveur'

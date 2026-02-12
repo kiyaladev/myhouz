@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { GripVertical } from 'lucide-react';
 import Layout from '../../../components/layout/Layout';
 import { api } from '../../../lib/api';
 import { Card, CardContent } from '../../../components/ui/card';
@@ -89,9 +90,45 @@ export default function IdeabookDetailPage() {
   const [isInviting, setIsInviting] = useState(false);
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
+  const [isDragMode, setIsDragMode] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setShareUrl(window.location.href);
+  }, []);
+
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDragIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverIndex(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === dropIndex || !ideabook) return;
+
+    const reordered = [...ideabook.items];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(dropIndex, 0, moved);
+
+    setIdeabook({ ...ideabook, items: reordered });
+    setDragIndex(null);
+    setDragOverIndex(null);
+  }, [dragIndex, ideabook]);
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null);
+    setDragOverIndex(null);
   }, []);
 
   const handleCopyLink = () => {
@@ -295,17 +332,51 @@ export default function IdeabookDetailPage() {
           )}
 
           {/* Items Grid */}
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Éléments sauvegardés ({ideabook.items.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Éléments sauvegardés ({ideabook.items.length})
+            </h2>
+            <Button
+              variant={isDragMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setIsDragMode(!isDragMode);
+                setDragIndex(null);
+                setDragOverIndex(null);
+              }}
+            >
+              <GripVertical className="w-4 h-4 mr-1" />
+              {isDragMode ? 'Terminer' : 'Mode réorganisation'}
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ideabook.items.map((item) => (
-              <Card key={item._id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+            {ideabook.items.map((item, index) => (
+              <Card
+                key={item._id}
+                draggable={isDragMode}
+                onDragStart={isDragMode ? (e) => handleDragStart(e, index) : undefined}
+                onDragOver={isDragMode ? (e) => handleDragOver(e, index) : undefined}
+                onDragLeave={isDragMode ? handleDragLeave : undefined}
+                onDrop={isDragMode ? (e) => handleDrop(e, index) : undefined}
+                onDragEnd={isDragMode ? handleDragEnd : undefined}
+                className={`overflow-hidden transition-all duration-200 ${
+                  isDragMode ? 'cursor-grab active:cursor-grabbing' : 'hover:shadow-md'
+                } ${dragIndex === index ? 'opacity-40' : ''} ${
+                  dragOverIndex === index && dragIndex !== index
+                    ? 'ring-2 ring-emerald-500 ring-offset-2'
+                    : ''
+                }`}
+              >
                 <div className="relative">
+                  {isDragMode && (
+                    <div className="absolute top-4 right-4 z-10 bg-white/90 rounded-full p-1.5 shadow-sm">
+                      <GripVertical className="w-4 h-4 text-gray-500" />
+                    </div>
+                  )}
                   <img
                     src={getItemImage(item)}
                     alt={getItemTitle(item)}
-                    className="w-full h-48 object-cover"
+                    className={`w-full h-48 object-cover ${isDragMode ? 'pointer-events-none' : ''}`}
                   />
                   <div className="absolute top-4 left-4">
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${getItemTypeBadgeClass(item.itemType)}`}>

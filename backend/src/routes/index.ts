@@ -13,6 +13,7 @@ import notificationRoutes from './notificationRoutes';
 import searchRoutes from './searchRoutes';
 import cartRoutes from './cartRoutes';
 import quoteRoutes from './quoteRoutes';
+import wishlistRoutes from './wishlistRoutes';
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/search', searchRoutes);
 router.use('/cart', cartRoutes);
 router.use('/quotes', quoteRoutes);
+router.use('/wishlists', wishlistRoutes);
 
 // Route de test
 router.get('/test', (req, res) => {
