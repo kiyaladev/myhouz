@@ -29,6 +29,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 19. [Performance & Optimisation](#19-performance--optimisation)
 20. [Tests](#20-tests)
 21. [Déploiement & CI/CD](#21-déploiement--cicd)
+22. [POS & Gestion Quincaillerie](#22-pos--gestion-quincaillerie)
 
 ---
 
@@ -478,6 +479,93 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 
 ---
 
+## 22. POS & Gestion Quincaillerie
+
+> Module de Point de Vente (POS) et gestion de quincaillerie pour les professionnels. Inclut caisse enregistreuse, gestion des stocks, historique des ventes et facturation.
+
+### Backend — POS (Caisse & Ventes)
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.1 | Modèle PosSale | ✅ | `backend/src/models/PosSale.ts` — Ventes avec articles, totaux, paiement (espèces/carte/chèque), client, remboursement |
+| 22.2 | Créer une vente POS | ✅ | `PosController.createSale` — Validation stock, calcul totaux, déduction stock atomique, génération numéro unique |
+| 22.3 | Lister les ventes POS | ✅ | `PosController.getSales` — Pagination, filtres (statut, mode paiement, dates, recherche) |
+| 22.4 | Détail d'une vente | ✅ | `PosController.getSale` — Avec populate des produits |
+| 22.5 | Tableau de bord POS (stats) | ✅ | `PosController.getDashboard` — Ventes jour/mois, alertes stock faible, ventes récentes |
+| 22.6 | Rembourser une vente | ✅ | `PosController.refundSale` — Restauration du stock + changement statut |
+| 22.7 | Routes POS | ✅ | `backend/src/routes/posRoutes.ts` — 8 endpoints sous `/api/pos/*` (auth pro requise) |
+
+### Backend — Gestion des Stocks
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.8 | Liste des stocks | ✅ | `PosController.getStockList` — Filtres par catégorie, statut stock (ok/low/out), recherche, pagination |
+| 22.9 | Ajustement de stock | ✅ | `PosController.adjustStock` — Ajustement +/- avec mise à jour auto du statut produit |
+| 22.10 | Recherche rapide produits POS | ✅ | `PosController.searchProducts` — Recherche par nom, SKU, tags (max 10 résultats) |
+
+### Backend — Facturation
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.11 | Modèle Invoice (Facture) | ✅ | `backend/src/models/Invoice.ts` — Client (nom, email, SIRET, adresse), articles, totaux TVA, infos vendeur, statuts (brouillon/envoyée/payée/en retard/annulée) |
+| 22.12 | Créer une facture | ✅ | `InvoiceController.createInvoice` — Manuelle ou depuis vente POS (auto-remplissage), numéro séquentiel FAC-YYYY-NNNNNN |
+| 22.13 | Lister les factures | ✅ | `InvoiceController.getInvoices` — Pagination, filtres (statut, dates, recherche par n° ou client) |
+| 22.14 | Détail d'une facture | ✅ | `InvoiceController.getInvoice` — Avec populate de la vente POS associée |
+| 22.15 | Modifier une facture brouillon | ✅ | `InvoiceController.updateInvoice` — Uniquement si statut = brouillon, recalcul des totaux côté serveur |
+| 22.16 | Marquer comme payée | ✅ | `InvoiceController.markAsPaid` — Mise à jour statut + date de paiement |
+| 22.17 | Annuler une facture | ✅ | `InvoiceController.cancelInvoice` — Changement de statut |
+| 22.18 | Statistiques factures | ✅ | `InvoiceController.getInvoiceStats` — Totaux facturé/payé/impayé/en retard/annulé (agrégation MongoDB) |
+| 22.19 | Routes factures | ✅ | 7 endpoints sous `/api/pos/invoices/*` — GET stats, CRUD, PATCH pay/cancel |
+
+### Frontend — Caisse Enregistreuse
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.20 | Page caisse POS | ✅ | `frontend/src/app/dashboard/pro/pos/page.tsx` — Recherche produits, panier, paiement (espèces/carte/chèque), remise, ticket de caisse |
+| 22.21 | Raccourcis catégories rapides | ✅ | Boutons Visserie, Quincaillerie, Serrurerie, Colles & Mastics |
+| 22.22 | Calcul monnaie rendue | ✅ | Automatique pour paiement espèces avec raccourcis montants (5€, 10€, 20€, 50€) |
+| 22.23 | Ticket de caisse (reçu) | ✅ | Modal récapitulatif avec détails articles, TVA, paiement, monnaie rendue |
+| 22.24 | Bouton « Générer facture » sur ticket | ✅ | Lien vers page factures depuis le reçu de caisse |
+
+### Frontend — Gestion des Stocks
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.25 | Page gestion des stocks | ✅ | `frontend/src/app/dashboard/pro/pos/stock/page.tsx` — Tableau avec nom, SKU, catégorie, prix, stock, statut |
+| 22.26 | Filtres et recherche stock | ✅ | Par statut (en stock/faible/rupture), catégorie, recherche nom/SKU |
+| 22.27 | Ajustement de stock en ligne | ✅ | Boutons +/- et ajustement manuel avec validation |
+| 22.28 | Alertes stock faible/rupture | ✅ | Section dédiée avec code couleur (ambre = faible, rouge = rupture) |
+| 22.29 | Stats stock (valeur, ruptures) | ✅ | Cartes : total produits, valeur du stock, stock faible, en rupture |
+
+### Frontend — Historique des Ventes
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.30 | Page historique des ventes | ✅ | `frontend/src/app/dashboard/pro/pos/sales/page.tsx` — Liste avec filtres, stats, détail |
+| 22.31 | Filtres ventes (paiement, statut) | ✅ | Par mode de paiement et statut (validée/remboursée) |
+| 22.32 | Détail vente (modal) | ✅ | Récapitulatif complet avec articles, totaux, paiement |
+| 22.33 | Stats ventes (CA, panier moyen) | ✅ | Cartes : chiffre d'affaires, transactions, panier moyen, articles vendus |
+| 22.34 | Bouton « Générer facture » depuis vente | ✅ | Lien vers page factures depuis le détail d'une vente |
+
+### Frontend — Facturation
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.35 | Page liste des factures | ✅ | `frontend/src/app/dashboard/pro/pos/invoices/page.tsx` — Liste avec filtres par statut, recherche, stats |
+| 22.36 | Formulaire création de facture | ✅ | Modal avec infos client (nom, entreprise, SIRET, adresse), articles dynamiques, totaux TVA, mode paiement, échéance, notes |
+| 22.37 | Détail facture (modal) | ✅ | Vue complète : émetteur/client, tableau articles, totaux, paiement, statut, notes, actions (imprimer, marquer payée) |
+| 22.38 | Stats factures | ✅ | Cartes : total facturé, payé, impayé, en retard |
+| 22.39 | Navigation POS complète | ✅ | Liens entre caisse ↔ stocks ↔ historique ↔ factures dans les headers |
+
+### Améliorations Futures (Quincaillerie)
+| # | Tâche | Statut | Détails |
+|---|-------|--------|---------|
+| 22.40 | Impression/export PDF des factures | ❌ | Génération PDF avec logo, infos légales, mise en page professionnelle |
+| 22.41 | Envoi de facture par email | ❌ | Envoi automatique au client via Nodemailer |
+| 22.42 | Gestion des fournisseurs | ❌ | Modèle Supplier + commandes fournisseur + réapprovisionnement |
+| 22.43 | Alertes de réapprovisionnement auto | ❌ | Notification quand stock < seuil min configurable |
+| 22.44 | Codes-barres / QR codes produits | ❌ | Scan code-barres pour recherche rapide au POS |
+| 22.45 | Rapports financiers (jour/semaine/mois) | ❌ | Dashboard analytique avec graphiques de CA, marges, top produits |
+| 22.46 | Gestion multi-caisse | ❌ | Support plusieurs caisses simultanées |
+| 22.47 | Programme de fidélité clients | ❌ | Points de fidélité, historique client, remises automatiques |
+| 22.48 | Gestion des retours produits | ❌ | Workflow retour avec motif, impact stock, avoir client |
+| 22.49 | Intégration comptabilité | ❌ | Export données comptables (format FEC, CSV) |
+
+---
+
 ## Résumé de l'Avancement
 
 | Module | Progression estimée |
@@ -503,7 +591,8 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Performance & Optimisation | 25% |
 | Tests | 40% |
 | Déploiement & CI/CD | 0% |
-| **Total global** | **~78%** |
+| POS & Gestion Quincaillerie | 80% |
+| **Total global** | **~80%** |
 
 ---
 
@@ -528,6 +617,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 3. ~~Notifications (modèle + UI)~~ ✅
 4. Paiements Stripe (checkout + webhooks) ❌
 5. ~~Articles / Magazine~~ ✅
+6. ~~POS & Gestion Quincaillerie (caisse, stocks, ventes, factures)~~ ✅
 
 ### Phase 4 — Qualité & Production 🟡 En cours
 1. Tests complets (frontend + E2E) ❌

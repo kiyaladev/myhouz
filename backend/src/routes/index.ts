@@ -61,7 +61,7 @@ router.get('/health', (req, res) => {
       'Forum communautaire',
       'Messagerie entre utilisateurs',
       'Système de commandes e-commerce',
-      'Point de vente (POS) avec gestion de stocks'
+      'Point de vente (POS) avec gestion de stocks et facturation'
     ]
   });
 });

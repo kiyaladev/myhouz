@@ -160,6 +160,12 @@ export default function PosPage() {
               <p className="text-sm text-gray-500">Caisse enregistreuse — Quincaillerie</p>
             </div>
             <div className="flex gap-2">
+              <Link href="/dashboard/pro/pos/invoices">
+                <Button variant="outline" size="sm">
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Factures
+                </Button>
+              </Link>
               <Link href="/dashboard/pro/pos/stock">
                 <Button variant="outline" size="sm">
                   <Warehouse className="h-4 w-4 mr-2" />
@@ -246,6 +252,12 @@ export default function PosPage() {
                     )}
                   </div>
                   <div className="flex gap-2 mt-6">
+                    <Link href="/dashboard/pro/pos/invoices" className="flex-1">
+                      <Button variant="outline" className="w-full">
+                        <Receipt className="h-4 w-4 mr-2" />
+                        Générer facture
+                      </Button>
+                    </Link>
                     <Button onClick={newSale} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
                       <Check className="h-4 w-4 mr-2" />
                       Nouvelle vente
