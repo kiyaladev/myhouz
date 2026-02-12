@@ -62,16 +62,16 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 2.5 | Middleware rôle (particulier / professionnel) | ✅ | `requireProfessional`, `requireParticulier` |
 | 2.6 | Mot de passe oublié / reset | ✅ | `UserController.forgotPassword` + `UserController.resetPassword` avec token sécurisé |
 | 2.7 | Vérification e-mail | ✅ | `UserController.verifyEmail` + `UserController.resendVerificationEmail` + envoi email auto à l'inscription |
-| 2.8 | OAuth (Google, Facebook) | ❌ | Stratégie Passport.js ou équivalent |
+| 2.8 | OAuth (Google, Facebook) | ✅ | `backend/src/config/passport.ts` — Stratégies Google + Facebook avec Passport.js, création/liaison de comptes |
 | 2.9 | Gestion du profil utilisateur (CRUD) | ✅ | `UserController.getProfile` + `UserController.updateProfile` |
 | 2.10 | Upload photo de profil / avatar | ✅ | `UserController.uploadAvatar` + route `POST /users/profile/avatar` |
-| 2.11 | Refresh token / gestion des sessions | ❌ | — |
+| 2.11 | Refresh token / gestion des sessions | ✅ | `UserController.refreshToken` + `UserController.logout` — Access token 15min + Refresh token 30j + auto-refresh côté client |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 2.12 | Page connexion / inscription | ✅ | `frontend/src/app/auth/login/page.tsx` |
-| 2.13 | Boutons OAuth (Google, Facebook) | 🟡 | UI présente, pas connecté au backend |
+| 2.13 | Boutons OAuth (Google, Facebook) | ✅ | Boutons connectés au backend OAuth, page callback `auth/callback/page.tsx`, redirection avec tokens |
 | 2.14 | Contexte d'authentification (AuthContext/Provider) | ✅ | `frontend/src/contexts/AuthContext.tsx` avec JWT + localStorage |
 | 2.15 | Protection des routes côté client | ✅ | Middleware Next.js + redirect dans les composants |
 | 2.16 | Page mot de passe oublié | ✅ | `frontend/src/app/auth/forgot-password/page.tsx` + `frontend/src/app/auth/reset-password/page.tsx` |
@@ -95,7 +95,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 3.8 | Section « Professionnels à la une » | ✅ | Grille 4 professionnels avec avatar, services, notation |
 | 3.9 | Section « Produits populaires » | ✅ | Grille 4 produits avec image, prix, notation |
 | 3.10 | Section « Articles récents » | ✅ | Grille 3 articles avec image, catégorie, excerpt |
-| 3.11 | Personnalisation selon le profil connecté | ❌ | Recommandations basées sur les préférences |
+| 3.11 | Personnalisation selon le profil connecté | ✅ | `frontend/src/components/home/PersonalizedSection.tsx` — Salutation personnalisée, liens rapides par rôle (pro/particulier) |
 | 3.12 | Hero image/vidéo immersive (style Houzz) | ✅ | Grande photo plein écran Unsplash avec overlay + texte blanc |
 
 ---
@@ -111,7 +111,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 4.4 | Filtrage par catégorie / pièce / style | ✅ | Paramètres de query dans le controller |
 | 4.5 | Tri (populaire, récent, vues) | ✅ | Boutons de tri dans `projects/page.tsx` + paramètre sort API |
 | 4.6 | Système de likes / favoris | ✅ | `ProjectController.toggleLike` + route `POST /projects/:id/like` |
-| 4.7 | Tag de produits sur les photos | ❌ | Positionnement de produits sur une image |
+| 4.7 | Tag de produits sur les photos | ✅ | `ProjectController.tagProductOnImage` + `removeProductTag` + `getImageProducts` — Routes `POST/DELETE/GET /:id/images/:imageIndex/products` |
 | 4.8 | Pagination côté serveur | ✅ | Pagination dans `ProjectController.getProjects` + frontend |
 
 ### Frontend
@@ -122,7 +122,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 4.11 | Page détail d'un projet | ✅ | `frontend/src/app/projects/[id]/page.tsx` — Galerie photos, description, professionnel |
 | 4.12 | Visionneuse d'images plein écran (lightbox) | ✅ | `frontend/src/components/ui/lightbox.tsx` — Modal avec navigation, zoom, raccourcis clavier |
 | 4.13 | Bouton « Sauvegarder dans un Ideabook » | ✅ | Intégré dans `projects/[id]/page.tsx` avec `SaveToIdeabookModal` |
-| 4.14 | Affichage des produits tagués sur les photos | ❌ | Hotspots cliquables sur les images |
+| 4.14 | Affichage des produits tagués sur les photos | ✅ | Badge produits tagués + popover cliquable avec liens dans `projects/[id]/page.tsx` |
 | 4.15 | Scroll infini ou pagination | ✅ | Pagination fonctionnelle avec numéros de page + appels API |
 | 4.16 | Connexion au backend API | ✅ | `api.get('/projects')` avec fallback mock data |
 
@@ -134,7 +134,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | # | Tâche | Statut | Détails |
 |---|-------|--------|---------|
 | 5.1 | Filtre utilisateurs de type professionnel | ✅ | Via `userType: 'professionnel'` |
-| 5.2 | Recherche géolocalisée (par ville/code postal) | 🟡 | Index géospatial dans le modèle User |
+| 5.2 | Recherche géolocalisée (par ville/code postal) | ✅ | Requête `$near` MongoDB avec coordonnées + filtre code postal dans `searchProfessionals` |
 | 5.3 | Filtrage par spécialité / service | ✅ | Filtre `services` dans `searchProfessionals` |
 | 5.4 | Système de notation moyen par professionnel | ✅ | `updateEntityRating()` — Agrégation MongoDB dans `ReviewController` |
 | 5.5 | Profil professionnel enrichi | ✅ | Champs complets `professionalInfo` : companyName, businessNumber, services, description, portfolio, certifications, pricing, workingZones, subscription, rating, verified |
@@ -145,7 +145,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 |---|-------|--------|---------|
 | 5.7 | Page liste des professionnels | ✅ | `frontend/src/app/professionals/page.tsx` — Grille avec filtres (ville, spécialité) |
 | 5.8 | Page profil d'un professionnel | ✅ | `frontend/src/app/professionals/[id]/page.tsx` — Bio, services, infos |
-| 5.9 | Carte interactive (Google Maps / Mapbox) | ❌ | Localisation des pros sur une carte |
+| 5.9 | Carte interactive (OpenStreetMap / Leaflet) | ✅ | `frontend/src/components/ui/map.tsx` — Carte OpenStreetMap avec marqueurs, toggle Liste/Carte dans `professionals/page.tsx` |
 | 5.10 | Formulaire de demande de devis | ✅ | Formulaire dans `professionals/[id]/page.tsx` avec catégorie, budget, délai |
 | 5.11 | Bouton « Contacter ce professionnel » | ✅ | Bouton dans `projects/[id]/page.tsx` redirige vers messagerie |
 | 5.12 | Galerie des projets du professionnel | ✅ | Section portfolio dans `professionals/[id]/page.tsx` avec appel API `projects/professional/:id` |
@@ -162,9 +162,9 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 6.3 | Recherche full-text | ✅ | Index text sur `name`, `description`, `tags` + query `$text` dans `ProductController.getProducts` |
 | 6.4 | Filtrage par catégorie / prix / marque | ✅ | Query params dans le controller |
 | 6.5 | Gestion du panier | ✅ | `backend/src/models/Cart.ts` + `CartController` avec routes `/cart` |
-| 6.6 | Gestion des variantes (taille, couleur) | ❌ | — |
+| 6.6 | Gestion des variantes (taille, couleur) | ✅ | Champ `variants` dans le modèle Product avec nom, options (valeur, modificateur prix, SKU, quantité, image) |
 | 6.7 | Gestion de l'inventaire / stock | ✅ | Champs `inventory` (quantity, sku, trackInventory) + vérifications stock dans `CartController.addItem` et `CartController.updateItemQuantity` + `ProductController.updateStock` |
-| 6.8 | Wishlist / liste de souhaits | ❌ | — |
+| 6.8 | Wishlist / liste de souhaits | ✅ | `backend/src/models/Wishlist.ts` + `WishlistController` + routes `/api/wishlists` — Page favorites + bouton coeur produit |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
@@ -174,7 +174,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 6.11 | Galerie d'images produit (zoom, slider) | ✅ | Lightbox intégré dans `products/[id]/page.tsx` avec zoom et navigation |
 | 6.12 | Composant panier (sidebar/drawer) | ✅ | `frontend/src/components/cart/CartSidebar.tsx` — Sidebar avec gestion quantités |
 | 6.13 | Page panier récapitulatif | ✅ | `frontend/src/app/cart/page.tsx` — Page dédiée avec quantités, récapitulatif, frais de port |
-| 6.14 | Système de filtres avancés (sidebar) | 🟡 | Filtres basiques (recherche, catégorie, prix) dans `products/page.tsx` — Manque filtres facettes avancés |
+| 6.14 | Système de filtres avancés (sidebar) | ✅ | Filtres facettes dans `products/page.tsx` — Couleur, matériau, style (checkboxes), marque, tri, prix |
 | 6.15 | Connexion au backend API | ✅ | `api.get('/products')` avec fallback mock data + pagination |
 | 6.16 | Suggestions de produits similaires | ✅ | Section « Produits similaires » dans `products/[id]/page.tsx` avec appel API + fallback mock |
 | 6.17 | Contexte panier global | ✅ | `frontend/src/contexts/CartContext.tsx` avec badge dans header |
@@ -199,7 +199,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 7.7 | Page détail d'un ideabook | ✅ | `frontend/src/app/ideabooks/[id]/page.tsx` — Grille des éléments, infos créateur, tags |
 | 7.8 | Modal « Sauvegarder dans un ideabook » | ✅ | `frontend/src/components/SaveToIdeabookModal.tsx` — Sélection ideabook + création rapide |
 | 7.9 | Création rapide d'un ideabook | ✅ | Intégré dans le modal SaveToIdeabook |
-| 7.10 | Drag & drop pour réorganiser les éléments | ❌ | — |
+| 7.10 | Drag & drop pour réorganiser les éléments | ✅ | HTML5 Drag & Drop dans `ideabooks/[id]/page.tsx` — Mode réorganisation avec handles, feedback visuel |
 | 7.11 | Partage d'ideabook (lien public, invitation) | ✅ | Panel partage dans `ideabooks/[id]/page.tsx` — Copier lien + invitation email avec permissions |
 | 7.12 | Explorer les ideabooks publics populaires | ✅ | `frontend/src/app/ideabooks/explore/page.tsx` — Page de découverte avec recherche, grille |
 
@@ -224,7 +224,7 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | 8.8 | Filtrage par catégorie / tag | ✅ | Boutons catégorie dans `articles/page.tsx` + filtre API |
 | 8.9 | Section commentaires | ✅ | Section commentaires dans `articles/[slug]/page.tsx` — Formulaire + liste + API intégrée |
 | 8.10 | Partage sur les réseaux sociaux | ✅ | Boutons Twitter, Facebook, Copier le lien dans `articles/[slug]/page.tsx` |
-| 8.11 | Composant éditeur de contenu riche (admin) | ❌ | WYSIWYG pour rédiger les articles |
+| 8.11 | Composant éditeur de contenu riche (admin) | ✅ | `frontend/src/components/ui/rich-editor.tsx` — WYSIWYG avec toolbar (gras, italique, titres, listes, liens, images) + page `dashboard/pro/articles/page.tsx` |
 
 ---
 
@@ -483,27 +483,27 @@ Ce fichier documente l'ensemble des tâches nécessaires pour créer un clone fo
 | Module | Progression estimée |
 |--------|-------------------|
 | Infrastructure & Configuration | 100% |
-| Authentification & Utilisateurs | 90% |
-| Page d'Accueil | 85% |
-| Galerie de Photos / Projets | 85% |
-| Annuaire des Professionnels | 85% |
-| Marketplace (Produits) | 85% |
-| Ideabooks | 85% |
-| Articles & Magazine | 90% |
+| Authentification & Utilisateurs | 100% |
+| Page d'Accueil | 95% |
+| Galerie de Photos / Projets | 95% |
+| Annuaire des Professionnels | 100% |
+| Marketplace (Produits) | 95% |
+| Ideabooks | 95% |
+| Articles & Magazine | 95% |
 | Forum / Discussions | 95% |
 | Messagerie | 50% |
 | Avis & Évaluations | 100% |
 | Recherche Globale | 80% |
 | Tableau de Bord Utilisateur | 100% |
-| Tableau de Bord Professionnel | 60% |
+| Tableau de Bord Professionnel | 70% |
 | Commandes & Paiements | 30% |
 | Notifications | 65% |
 | Pages Statiques & SEO | 100% |
-| Design System & UI | 85% |
+| Design System & UI | 90% |
 | Performance & Optimisation | 25% |
 | Tests | 40% |
 | Déploiement & CI/CD | 0% |
-| **Total global** | **~70%** |
+| **Total global** | **~78%** |
 
 ---
 
