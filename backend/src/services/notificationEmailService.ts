@@ -32,7 +32,7 @@ function baseTemplate(title: string, body: string): string {
           <tr>
             <td style="background-color:#f9fafb;padding:16px 24px;text-align:center;border-top:1px solid #e5e7eb;">
               <p style="margin:0;font-size:12px;color:#6b7280;">
-                © ${new Date().getFullYear()} MyHouz — <a href="${FRONTEND_URL}" style="color:#059669;text-decoration:none;">myhouz.com</a>
+                © ${new Date().getFullYear()} MyHouz — <a href="${FRONTEND_URL}" style="color:#059669;text-decoration:none;">${new URL(FRONTEND_URL).host}</a>
               </p>
               <p style="margin:8px 0 0;font-size:12px;color:#9ca3af;">
                 <a href="${FRONTEND_URL}/dashboard/settings" style="color:#9ca3af;text-decoration:none;">Gérer mes préférences de notification</a>
