@@ -28,7 +28,7 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 | Pages Statiques & SEO | ✅ 100% |
 | Design System & UI | ✅ 100% |
 | Performance & Optimisation | ✅ 95% |
-| Tests | 🟡 60% |
+| Tests | 🟡 75% |
 | Déploiement & CI/CD | ✅ 95% |
 | POS & Gestion Quincaillerie | ✅ 100% |
 | **TOTAL GLOBAL** | **~95%** |
@@ -387,15 +387,18 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 
 ### Backend ✅
 - Jest configuré
-- Tests: `search.test.ts`, `health.test.ts`
+- Tests: `search.test.ts`, `health.test.ts`, `socket.test.ts`
 - Coverage: ~60%
 - **Command**: `cd backend && npm test`
 
-### Frontend ❌
-- Pas de tests configurés
-- **À faire**: Jest + React Testing Library + tests E2E (Playwright/Cypress)
+### Frontend 🟡
+- Jest + React Testing Library + jsdom configurés
+- Tests unitaires: composants UI (Button, Badge, Input, Card, Alert, EmptyState, Pagination, Progress) + utilitaires (cn)
+- 52 tests passants (9 suites)
+- **Command**: `cd frontend && npm test`
+- **À faire**: Tests E2E (Playwright/Cypress)
 
-**Fichiers**: `backend/jest.config.js`, `backend/src/__tests__/`
+**Fichiers**: `backend/jest.config.js`, `backend/src/__tests__/`, `frontend/jest.config.ts`, `frontend/src/__tests__/`
 
 ---
 
@@ -526,9 +529,8 @@ Module complet de Point de Vente pour professionnels avec gestion d'entreprise.
 - ✅ Déploiement production Contabo (nginx, SSL, backups)
 
 **Restant**:
-- ❌ Tests frontend complets (Jest + RTL + E2E)
+- 🟡 Tests frontend (Jest + RTL configuré, 52 tests passants — manque E2E)
 - ❌ Monitoring production (Sentry, logs centralisés)
-- ✅ WebSocket (Socket.io) pour messagerie temps réel
 
 ---
 
@@ -587,10 +589,11 @@ npm run seed        # Populate demo data (backend)
 
 ## Prochaines Étapes Prioritaires
 
-1. **Tests Frontend** — Jest + React Testing Library + E2E
-2. **Monitoring Production** — Sentry error tracking + logs
-3. ~~**WebSocket** — Socket.io pour messagerie temps réel~~ ✅
-4. **SEO Avancé** — Schema.org + Open Graph complet
+1. ~~**Tests Frontend** — Jest + React Testing Library~~ 🟡 (configuré, 52 tests passants)
+2. **Tests E2E** — Playwright/Cypress pour parcours utilisateur
+3. **Monitoring Production** — Sentry error tracking + logs
+4. ~~**WebSocket** — Socket.io pour messagerie temps réel~~ ✅
+5. **SEO Avancé** — Schema.org + Open Graph complet
 
 ---
 
