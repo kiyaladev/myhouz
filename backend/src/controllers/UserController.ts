@@ -64,17 +64,24 @@ export class UserController {
         // On continue malgré l'erreur d'envoi d'email
       }
 
-      // Générer un token JWT
+      // Générer les tokens JWT
       const token = jwt.sign(
         { userId: user._id, userType: user.userType },
         process.env.JWT_SECRET!,
-        { expiresIn: '7d' }
+        { expiresIn: '15m' }
+      );
+
+      const refreshToken = jwt.sign(
+        { userId: user._id, userType: user.userType, tokenType: 'refresh' },
+        process.env.JWT_SECRET!,
+        { expiresIn: '30d' }
       );
 
       res.status(201).json({
         success: true,
         message: 'Utilisateur créé avec succès. Un email de vérification a été envoyé.',
         token,
+        refreshToken,
         data: {
           id: user._id,
           firstName: user.firstName,
@@ -128,17 +135,24 @@ export class UserController {
         return;
       }
 
-      // Générer un token JWT
+      // Générer les tokens JWT
       const token = jwt.sign(
         { userId: user._id, userType: user.userType },
         process.env.JWT_SECRET!,
-        { expiresIn: '7d' }
+        { expiresIn: '15m' }
+      );
+
+      const refreshToken = jwt.sign(
+        { userId: user._id, userType: user.userType, tokenType: 'refresh' },
+        process.env.JWT_SECRET!,
+        { expiresIn: '30d' }
       );
 
       res.json({
         success: true,
         message: 'Connexion réussie',
         token,
+        refreshToken,
         data: {
           id: user._id,
           firstName: user.firstName,
@@ -551,6 +565,94 @@ export class UserController {
       });
     } catch (error) {
       console.error('Erreur lors du renvoi de l\'email de vérification:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Rafraîchir le token d'accès
+  static async refreshToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) {
+        res.status(400).json({
+          success: false,
+          message: 'Refresh token requis'
+        });
+        return;
+      }
+
+      // Vérifier le refresh token
+      let decoded: { userId: string; userType: string; tokenType: string };
+      try {
+        decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as { userId: string; userType: string; tokenType: string };
+      } catch (err) {
+        res.status(401).json({
+          success: false,
+          message: 'Refresh token invalide ou expiré'
+        });
+        return;
+      }
+
+      // Vérifier que c'est bien un refresh token
+      if (decoded.tokenType !== 'refresh') {
+        res.status(401).json({
+          success: false,
+          message: 'Token invalide'
+        });
+        return;
+      }
+
+      // Vérifier que l'utilisateur existe et est actif
+      const user = await User.findById(decoded.userId);
+      if (!user || !user.isActive) {
+        res.status(401).json({
+          success: false,
+          message: 'Utilisateur non trouvé ou inactif'
+        });
+        return;
+      }
+
+      // Générer de nouveaux tokens
+      const newToken = jwt.sign(
+        { userId: user._id, userType: user.userType },
+        process.env.JWT_SECRET!,
+        { expiresIn: '15m' }
+      );
+
+      const newRefreshToken = jwt.sign(
+        { userId: user._id, userType: user.userType, tokenType: 'refresh' },
+        process.env.JWT_SECRET!,
+        { expiresIn: '30d' }
+      );
+
+      res.json({
+        success: true,
+        message: 'Tokens rafraîchis avec succès',
+        token: newToken,
+        refreshToken: newRefreshToken
+      });
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement du token:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur interne du serveur'
+      });
+    }
+  }
+
+  // Déconnexion
+  static async logout(req: Request, res: Response): Promise<void> {
+    try {
+      res.json({
+        success: true,
+        message: 'Déconnexion réussie'
+      });
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
       res.status(500).json({
         success: false,
         message: 'Erreur interne du serveur'

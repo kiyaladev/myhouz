@@ -26,6 +26,7 @@ router.post('/forgot-password', passwordResetLimiter, UserController.forgotPassw
 router.post('/reset-password', passwordResetLimiter, UserController.resetPassword);
 router.post('/verify-email', UserController.verifyEmail);
 router.post('/resend-verification', passwordResetLimiter, UserController.resendVerificationEmail);
+router.post('/refresh-token', UserController.refreshToken);
 router.get('/professionals/search', UserController.searchProfessionals);
 router.get('/professionals/:id', UserController.getProfessionalProfile);
 
@@ -33,5 +34,6 @@ router.get('/professionals/:id', UserController.getProfessionalProfile);
 router.get('/profile', authenticateToken, UserController.getProfile);
 router.put('/profile', authenticateToken, UserController.updateProfile);
 router.post('/profile/avatar', uploadLimiter, authenticateToken, uploadSingle, UserController.uploadAvatar);
+router.post('/logout', authenticateToken, UserController.logout);
 
 export default router;
