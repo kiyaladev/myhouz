@@ -5,6 +5,7 @@ interface ApiResponse<T = unknown> {
   message?: string;
   data?: T;
   token?: string;
+  refreshToken?: string;
   pagination?: {
     page: number;
     limit: number;
@@ -48,6 +49,35 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
+      // Try to refresh token on 401
+      if (response.status === 401 && typeof window !== 'undefined') {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken && !endpoint.includes('/refresh-token')) {
+          try {
+            const refreshResponse = await fetch(`${this.baseUrl}/users/refresh-token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refreshToken }),
+            });
+            const refreshData = await refreshResponse.json();
+            if (refreshData.success && refreshData.token) {
+              localStorage.setItem('token', refreshData.token);
+              if (refreshData.refreshToken) {
+                localStorage.setItem('refreshToken', refreshData.refreshToken);
+              }
+              // Retry original request with new token
+              (headers as Record<string, string>)['Authorization'] = `Bearer ${refreshData.token}`;
+              const retryResponse = await fetch(`${this.baseUrl}${endpoint}`, { ...options, headers });
+              return await retryResponse.json();
+            }
+          } catch {
+            // Refresh failed, clear tokens
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+          }
+        }
+      }
+
       const error = new Error(data.message || 'API request failed') as Error & { status: number; data: unknown };
       error.status = response.status;
       error.data = data;
