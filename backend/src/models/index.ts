@@ -15,6 +15,10 @@ export { default as Quote } from './Quote';
 export { default as PosSale } from './PosSale';
 export { default as Invoice } from './Invoice';
 export { default as Wishlist } from './Wishlist';
+export { default as Supplier } from './Supplier';
+export { default as Register } from './Register';
+export { default as LoyaltyProgram } from './LoyaltyProgram';
+export { default as ProductReturn } from './ProductReturn';
 
 // Export interfaces
 export type { IUser } from './User';
@@ -33,3 +37,7 @@ export type { IQuote } from './Quote';
 export type { IPosSale } from './PosSale';
 export type { IInvoice } from './Invoice';
 export type { IWishlist, IWishlistItem } from './Wishlist';
+export type { ISupplier } from './Supplier';
+export type { IRegister } from './Register';
+export type { ILoyaltyProgram } from './LoyaltyProgram';
+export type { IProductReturn } from './ProductReturn';

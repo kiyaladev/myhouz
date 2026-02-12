@@ -50,6 +50,7 @@ export interface IProduct extends Document {
     totalReviews: number;
   };
   tags: string[];
+  barcode?: string;
   variants: {
     name: string;
     options: {
@@ -126,6 +127,7 @@ const ProductSchema: Schema = new Schema({
     totalReviews: { type: Number, default: 0 }
   },
   tags: [String],
+  barcode: { type: String, index: true },
   variants: [{
     name: { type: String, required: true },
     options: [{
