@@ -19,6 +19,7 @@ import {
   Settings,
   BarChart3,
   CreditCard,
+  ShoppingCart,
 } from 'lucide-react';
 
 // Mock data
@@ -257,6 +258,12 @@ export default function ProDashboardPage() {
                   <Button variant="outline">
                     <CreditCard className="h-4 w-4 mr-2" />
                     Abonnement
+                  </Button>
+                </Link>
+                <Link href="/dashboard/pro/pos">
+                  <Button variant="outline">
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Point de Vente (POS)
                   </Button>
                 </Link>
               </div>
