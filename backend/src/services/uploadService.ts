@@ -35,6 +35,8 @@ function getFolderForEntity(entity: string): string {
       return 'reviews';
     case 'articles':
       return 'articles';
+    case 'messages':
+      return 'messages';
     default:
       return 'misc';
   }

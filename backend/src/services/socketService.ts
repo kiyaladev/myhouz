@@ -116,3 +116,15 @@ export function emitMessageDeleted(conversationId: string, messageId: string): v
   if (!io) return;
   io.to(`conversation:${conversationId}`).emit('message:deleted', { messageId });
 }
+
+/** Emit a new notification to a specific user */
+export function emitNotification(recipientId: string, notification: unknown): void {
+  if (!io) return;
+  io.to(`user:${recipientId}`).emit('notification:new', notification);
+}
+
+/** Emit an updated unread notification count to a specific user */
+export function emitNotificationCount(recipientId: string, count: number): void {
+  if (!io) return;
+  io.to(`user:${recipientId}`).emit('notification:count', { count });
+}

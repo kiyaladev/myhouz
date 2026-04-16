@@ -1,6 +1,7 @@
 import Notification from '../models/Notification';
 import User from '../models/User';
 import { sendNewMessageEmail, sendNewReviewEmail, sendOrderStatusEmail } from './notificationEmailService';
+import { emitNotification, emitNotificationCount } from './socketService';
 
 interface CreateNotificationParams {
   recipientId: string;
@@ -19,11 +20,26 @@ function truncate(text: string, maxLength: number = 80): string {
 
 export class NotificationService {
   /**
+   * Check if user has enabled a specific notification channel + type
+   */
+  private static isEnabled(
+    user: { preferences?: { notifications?: boolean; notificationPreferences?: { email?: Record<string, boolean>; inApp?: Record<string, boolean> } } } | null,
+    channel: 'email' | 'inApp',
+    type: string
+  ): boolean {
+    if (!user) return true; // Default to enabled
+    if (user.preferences?.notifications === false) return false; // Global toggle off
+    const channelPrefs = user.preferences?.notificationPreferences?.[channel];
+    if (!channelPrefs) return true; // No preferences set = enabled by default
+    return channelPrefs[type] !== false; // Default to enabled unless explicitly false
+  }
+
+  /**
    * Create a notification and optionally send an email
    */
   static async create(params: CreateNotificationParams): Promise<void> {
     try {
-      await Notification.create({
+      const notification = await Notification.create({
         recipient: params.recipientId,
         sender: params.senderId,
         type: params.type,
@@ -32,6 +48,25 @@ export class NotificationService {
         link: params.link,
         metadata: params.metadata,
       });
+
+      // Emit real-time notification via Socket.io
+      emitNotification(params.recipientId, {
+        _id: notification._id,
+        type: params.type,
+        title: params.title,
+        content: params.content,
+        link: params.link,
+        read: false,
+        createdAt: notification.createdAt,
+        sender: params.senderId,
+      });
+
+      // Emit updated unread count
+      const unreadCount = await Notification.countDocuments({
+        recipient: params.recipientId,
+        read: false,
+      });
+      emitNotificationCount(params.recipientId, unreadCount);
     } catch (error) {
       console.error('Erreur lors de la création de la notification:', error);
     }
@@ -47,24 +82,30 @@ export class NotificationService {
     messagePreview: string,
     conversationId: string
   ): Promise<void> {
-    await NotificationService.create({
-      recipientId,
-      senderId,
-      type: 'message',
-      title: 'Nouveau message',
-      content: `${senderName} vous a envoyé un message : "${truncate(messagePreview)}"`,
-      link: `/messages?conversation=${conversationId}`,
-      metadata: { conversationId },
-    });
+    const recipient = await User.findById(recipientId).select('email preferences');
 
-    // Send email notification (fire and forget)
-    try {
-      const recipient = await User.findById(recipientId).select('email');
-      if (recipient?.email) {
-        sendNewMessageEmail(recipient.email, senderName, messagePreview).catch(() => {});
+    // Check in-app preference
+    if (NotificationService.isEnabled(recipient, 'inApp', 'messages')) {
+      await NotificationService.create({
+        recipientId,
+        senderId,
+        type: 'message',
+        title: 'Nouveau message',
+        content: `${senderName} vous a envoyé un message : "${truncate(messagePreview)}"`,
+        link: `/messages?conversation=${conversationId}`,
+        metadata: { conversationId },
+      });
+    }
+
+    // Check email preference
+    if (NotificationService.isEnabled(recipient, 'email', 'messages')) {
+      try {
+        if (recipient?.email) {
+          sendNewMessageEmail(recipient.email, senderName, messagePreview).catch(() => {});
+        }
+      } catch {
+        // Email is non-critical
       }
-    } catch {
-      // Email is non-critical
     }
   }
 
@@ -78,23 +119,28 @@ export class NotificationService {
     rating: number,
     targetName: string
   ): Promise<void> {
+    const recipient = await User.findById(recipientId).select('email preferences');
     const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-    await NotificationService.create({
-      recipientId,
-      senderId: reviewerId,
-      type: 'review',
-      title: 'Nouvel avis reçu',
-      content: `${reviewerName} a laissé un avis ${stars} sur ${targetName}`,
-      link: '/dashboard/pro/reviews',
-    });
 
-    try {
-      const recipient = await User.findById(recipientId).select('email');
-      if (recipient?.email) {
-        sendNewReviewEmail(recipient.email, reviewerName, rating, targetName).catch(() => {});
+    if (NotificationService.isEnabled(recipient, 'inApp', 'reviews')) {
+      await NotificationService.create({
+        recipientId,
+        senderId: reviewerId,
+        type: 'review',
+        title: 'Nouvel avis reçu',
+        content: `${reviewerName} a laissé un avis ${stars} sur ${targetName}`,
+        link: '/dashboard/pro/reviews',
+      });
+    }
+
+    if (NotificationService.isEnabled(recipient, 'email', 'reviews')) {
+      try {
+        if (recipient?.email) {
+          sendNewReviewEmail(recipient.email, reviewerName, rating, targetName).catch(() => {});
+        }
+      } catch {
+        // Email is non-critical
       }
-    } catch {
-      // Email is non-critical
     }
   }
 
@@ -114,23 +160,27 @@ export class NotificationService {
       refunded: 'remboursée',
     };
     const label = statusLabels[status] || status;
+    const recipient = await User.findById(recipientId).select('email preferences');
 
-    await NotificationService.create({
-      recipientId,
-      type: 'order',
-      title: 'Mise à jour de commande',
-      content: `Votre commande #${orderNumber} est maintenant ${label}`,
-      link: `/orders/tracking?order=${orderNumber}`,
-      metadata: { orderNumber, status },
-    });
+    if (NotificationService.isEnabled(recipient, 'inApp', 'orders')) {
+      await NotificationService.create({
+        recipientId,
+        type: 'order',
+        title: 'Mise à jour de commande',
+        content: `Votre commande #${orderNumber} est maintenant ${label}`,
+        link: `/orders/tracking?order=${orderNumber}`,
+        metadata: { orderNumber, status },
+      });
+    }
 
-    try {
-      const recipient = await User.findById(recipientId).select('email');
-      if (recipient?.email) {
-        sendOrderStatusEmail(recipient.email, orderNumber, status).catch(() => {});
+    if (NotificationService.isEnabled(recipient, 'email', 'orders')) {
+      try {
+        if (recipient?.email) {
+          sendOrderStatusEmail(recipient.email, orderNumber, status).catch(() => {});
+        }
+      } catch {
+        // Email is non-critical
       }
-    } catch {
-      // Email is non-critical
     }
   }
 

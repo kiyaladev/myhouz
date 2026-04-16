@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { MessageController } from '../controllers/MessageController';
 import { authenticateToken } from '../middleware/auth';
+import { uploadMultiple, handleUploadError } from '../middleware/upload';
 
 const router = Router();
 
@@ -14,12 +15,15 @@ router.get('/conversations/:id', MessageController.getConversation);
 router.patch('/conversations/:id/archive', MessageController.archiveConversation);
 router.patch('/conversations/:id/read', MessageController.markConversationAsRead);
 
-// Gestion des messages
-router.post('/conversations/:conversationId/messages', MessageController.sendMessage);
+// Gestion des messages (with optional file attachments)
+router.post('/conversations/:conversationId/messages', uploadMultiple, MessageController.sendMessage);
 router.put('/messages/:messageId', MessageController.updateMessage);
 router.delete('/messages/:messageId', MessageController.deleteMessage);
 
 // Utilitaires
 router.get('/unread-count', MessageController.getUnreadCount);
+
+// Upload error handler
+router.use(handleUploadError);
 
 export default router;
