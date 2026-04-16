@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "../contexts/AuthContext";
 import { CartProvider } from "../contexts/CartContext";
+import { SocketProvider } from "../contexts/SocketContext";
 import CartSidebar from "../components/cart/CartSidebar";
 import "./globals.css";
 
@@ -19,8 +20,10 @@ export default function RootLayout({
       <body className="antialiased">
         <AuthProvider>
           <CartProvider>
-            {children}
-            <CartSidebar />
+            <SocketProvider>
+              {children}
+              <CartSidebar />
+            </SocketProvider>
           </CartProvider>
         </AuthProvider>
       </body>
