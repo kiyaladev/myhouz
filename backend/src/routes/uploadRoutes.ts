@@ -6,7 +6,7 @@ import { uploadFile, uploadFiles, deleteFile } from '../services/uploadService';
 
 const router = Router();
 
-const ALLOWED_ENTITIES = ['projects', 'products', 'profiles', 'ideabooks', 'reviews', 'articles'];
+const ALLOWED_ENTITIES = ['projects', 'products', 'profiles', 'ideabooks', 'reviews', 'articles', 'messages'];
 
 // Limite de débit pour les uploads : 30 requêtes par minute par IP
 const uploadLimiter = rateLimit({

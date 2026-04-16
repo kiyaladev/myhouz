@@ -13,7 +13,7 @@
 | 10.2 | CRUD messages et conversations | ✅ | `MessageController` |
 | 10.3 | Temps réel avec WebSocket (Socket.io) | ✅ | `backend/src/services/socketService.ts` — JWT auth, rooms, typing indicators |
 | 10.4 | Marquage lu / non lu | ✅ | `MessageController.markConversationAsRead` + `getUnreadCount` |
-| 10.5 | Pièces jointes dans les messages | ❌ | Upload d'images dans la conversation |
+| 10.5 | Pièces jointes dans les messages | ✅ | Upload d'images via Multer + MinIO dans `MessageController.sendMessage` |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
@@ -21,8 +21,8 @@
 | 10.6 | Page messagerie (inbox) | ✅ | `frontend/src/app/messages/page.tsx` — Liste des conversations avec recherche |
 | 10.7 | Vue conversation avec fil de messages | ✅ | Chat style messagerie instantanée intégré dans la page messages |
 | 10.8 | Indicateur de messages non lus | ✅ | Icône `MessageCircle` (Lucide) dans le header |
-| 10.9 | Envoi de pièces jointes | ❌ | — |
-| 10.10 | Notifications en temps réel | ❌ | Toast ou badge lors d'un nouveau message |
+| 10.9 | Envoi de pièces jointes | ✅ | Bouton Paperclip + preview fichiers + upload FormData dans `messages/page.tsx` |
+| 10.10 | Notifications en temps réel | ✅ | Socket.io client via `SocketContext` + réception notifications temps réel dans Header |
 
 ---
 
@@ -149,9 +149,9 @@
 |---|-------|--------|---------|
 | 16.1 | Modèle Notification | ✅ | `backend/src/models/Notification.ts` — Type, destinataire, lu/non lu, metadata |
 | 16.2 | CRUD notifications + routes | ✅ | `NotificationController` + `notificationRoutes.ts` — GET, mark read, delete |
-| 16.3 | WebSocket pour notifications temps réel | ❌ | Socket.io |
+| 16.3 | WebSocket pour notifications temps réel | ✅ | Socket.io émet `notification:new` et `notification:count` via `socketService.ts` |
 | 16.4 | Notifications par e-mail | ✅ | `backend/src/services/notificationEmailService.ts` — Templates HTML (message, avis, commande, devis, ideabook, système) via Nodemailer |
-| 16.5 | Préférences de notification par utilisateur | ❌ | — |
+| 16.5 | Préférences de notification par utilisateur | ✅ | Préférences granulaires (email/inApp par type) dans `User.ts` + `NotificationController` + page paramètres |
 
 ### Frontend
 | # | Tâche | Statut | Détails |
@@ -239,13 +239,13 @@
 
 | Module | Progression estimée |
 |--------|-------------------|
-| Messagerie | 80% |
+| Messagerie | 100% |
 | Avis & Évaluations | 100% |
 | Recherche Globale | 80% |
 | Tableau de Bord Utilisateur | 100% |
 | Tableau de Bord Professionnel + POS | 100% |
 | Commandes & Paiements | 100% |
-| Notifications | 75% |
+| Notifications | 100% |
 | Pages Statiques & SEO | 100% |
 | Design System & UI | 85% |
 | Performance & Optimisation | 50% |

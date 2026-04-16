@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useSocket } from '../../contexts/SocketContext';
 import { Bell, Search, FolderOpen, ShoppingBag, ShoppingCart, Users, MessageCircle, X } from 'lucide-react';
 
 interface Suggestion {
@@ -34,6 +35,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount, openCart } = useCart();
+  const { onNotification, onNotificationCount } = useSocket();
   const router = useRouter();
 
   // Notification state
@@ -76,6 +78,28 @@ export default function Header() {
     const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
+
+  // Real-time notifications via Socket.io
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const unsubNotif = onNotification((notification) => {
+      setNotifications((prev) => [
+        {
+          id: notification._id,
+          type: notification.type,
+          title: notification.title,
+          description: notification.content,
+          read: false,
+          createdAt: notification.createdAt,
+          link: notification.link || '/notifications',
+        },
+        ...prev.slice(0, 9), // Keep max 10
+      ]);
+    });
+
+    return unsubNotif;
+  }, [isAuthenticated, onNotification]);
 
   // Search autocomplete state
   const [searchQuery, setSearchQuery] = useState('');

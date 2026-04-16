@@ -19,12 +19,12 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 | Ideabooks | ✅ 95% |
 | Articles & Magazine | ✅ 95% |
 | Forum / Discussions | ✅ 95% |
-| Messagerie | ✅ 95% |
+| Messagerie | ✅ 100% |
 | Avis & Évaluations | ✅ 100% |
 | Recherche Globale | ✅ 80% |
 | Tableaux de Bord | ✅ 100% |
 | Commandes & Paiements | ✅ 100% |
-| Notifications | ✅ 95% |
+| Notifications | ✅ 100% |
 | Pages Statiques & SEO | ✅ 100% |
 | Design System & UI | ✅ 100% |
 | Performance & Optimisation | ✅ 95% |
@@ -216,6 +216,8 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 
 ### À améliorer ✅
 - ✅ WebSocket (Socket.io) pour temps réel (JWT auth, rooms, typing indicators)
+- ✅ Pièces jointes dans les messages (upload images via Multer + MinIO)
+- ✅ Notifications temps réel via Socket.io (notification:new, notification:count)
 
 **Fichiers**: `backend/src/models/Message.ts`, `MessageController.ts`, `notificationService.ts`, `frontend/src/app/messages/`
 
@@ -326,7 +328,7 @@ Plan de développement complet pour le clone de Houzz.com avec système de gesti
 
 **Fichiers**: `backend/src/models/Notification.ts`, `NotificationController.ts`, `notificationService.ts`, `notificationEmailService.ts`
 
-**À améliorer**: Notifications push navigateur, préférences utilisateur
+**À améliorer**: ~~Notifications push navigateur~~, ~~préférences utilisateur~~ ✅ Préférences granulaires implémentées
 
 ---
 

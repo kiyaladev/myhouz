@@ -47,6 +47,26 @@ export interface IUser extends Document {
     newsletter: boolean;
     notifications: boolean;
     language: string;
+    notificationPreferences?: {
+      email: {
+        messages: boolean;
+        reviews: boolean;
+        orders: boolean;
+        ideabooks: boolean;
+        projects: boolean;
+        system: boolean;
+        quotes: boolean;
+      };
+      inApp: {
+        messages: boolean;
+        reviews: boolean;
+        orders: boolean;
+        ideabooks: boolean;
+        projects: boolean;
+        system: boolean;
+        quotes: boolean;
+      };
+    };
   };
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
@@ -108,7 +128,27 @@ const UserSchema: Schema = new Schema({
   preferences: {
     newsletter: { type: Boolean, default: true },
     notifications: { type: Boolean, default: true },
-    language: { type: String, default: 'fr' }
+    language: { type: String, default: 'fr' },
+    notificationPreferences: {
+      email: {
+        messages: { type: Boolean, default: true },
+        reviews: { type: Boolean, default: true },
+        orders: { type: Boolean, default: true },
+        ideabooks: { type: Boolean, default: true },
+        projects: { type: Boolean, default: true },
+        system: { type: Boolean, default: true },
+        quotes: { type: Boolean, default: true },
+      },
+      inApp: {
+        messages: { type: Boolean, default: true },
+        reviews: { type: Boolean, default: true },
+        orders: { type: Boolean, default: true },
+        ideabooks: { type: Boolean, default: true },
+        projects: { type: Boolean, default: true },
+        system: { type: Boolean, default: true },
+        quotes: { type: Boolean, default: true },
+      },
+    },
   },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },

@@ -7,8 +7,9 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { EmptyState } from '../../components/ui/empty-state';
-import { Search, Send, MessageCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { Search, Send, MessageCircle, ArrowLeft, Loader2, Paperclip, X, FileText, Image as ImageIcon } from 'lucide-react';
 import { api } from '../../lib/api';
+import { useSocket } from '../../contexts/SocketContext';
 
 interface Participant {
   _id: string;
@@ -65,8 +66,11 @@ export default function MessagesPage() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { joinConversation, leaveConversation, onNewMessage, onConversationUpdated } = useSocket();
 
   // Get current user ID from token
   useEffect(() => {
@@ -139,6 +143,35 @@ export default function MessagesPage() {
     };
   }, [selectedConversationId, loadMessages]);
 
+  // Socket.io: join/leave conversation rooms and listen for new messages
+  useEffect(() => {
+    if (!selectedConversationId) return;
+    joinConversation(selectedConversationId);
+
+    const unsubMessage = onNewMessage((message: unknown) => {
+      const msg = message as MessageData;
+      if (msg.sender?._id !== currentUserId) {
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
+      }
+    });
+
+    return () => {
+      leaveConversation(selectedConversationId);
+      unsubMessage();
+    };
+  }, [selectedConversationId, joinConversation, leaveConversation, onNewMessage, currentUserId]);
+
+  // Socket.io: refresh conversation list on updates
+  useEffect(() => {
+    const unsub = onConversationUpdated(() => {
+      loadConversations();
+    });
+    return unsub;
+  }, [onConversationUpdated, loadConversations]);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -171,23 +204,60 @@ export default function MessagesPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConversationId || sending) return;
+    if ((!newMessage.trim() && selectedFiles.length === 0) || !selectedConversationId || sending) return;
 
     setSending(true);
     try {
-      const res = await api.post<MessageData>(`/messages/conversations/${selectedConversationId}/messages`, {
-        content: newMessage.trim(),
-      });
-      if (res.success && res.data) {
-        setMessages((prev) => [...prev, res.data!]);
-        setNewMessage('');
-        loadConversations();
+      if (selectedFiles.length > 0) {
+        // Use FormData for file uploads
+        const formData = new FormData();
+        if (newMessage.trim()) {
+          formData.append('content', newMessage.trim());
+        }
+        selectedFiles.forEach((file) => formData.append('images', file));
+
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          `${API_URL}/messages/conversations/${selectedConversationId}/messages`,
+          {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: formData,
+          }
+        );
+        const data = await response.json();
+        if (data.success && data.data) {
+          setMessages((prev) => [...prev, data.data]);
+          setNewMessage('');
+          setSelectedFiles([]);
+          loadConversations();
+        }
+      } else {
+        const res = await api.post<MessageData>(`/messages/conversations/${selectedConversationId}/messages`, {
+          content: newMessage.trim(),
+        });
+        if (res.success && res.data) {
+          setMessages((prev) => [...prev, res.data!]);
+          setNewMessage('');
+          loadConversations();
+        }
       }
     } catch {
       // Could show error toast
     } finally {
       setSending(false);
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles((prev) => [...prev, ...files].slice(0, 5)); // Max 5 files
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSelectConversation = (id: string) => {
@@ -338,7 +408,37 @@ export default function MessagesPage() {
                                   : 'bg-gray-100 text-gray-900'
                               }`}
                             >
-                              <p>{message.content}</p>
+                              {message.content && <p>{message.content}</p>}
+                              {/* Attachments display */}
+                              {message.attachments && message.attachments.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {message.attachments.map((att, idx) => (
+                                    <div key={idx}>
+                                      {att.type === 'image' ? (
+                                        <a href={att.url} target="_blank" rel="noopener noreferrer" className="block">
+                                          <img
+                                            src={att.url}
+                                            alt={att.name}
+                                            className="max-w-full rounded-lg max-h-48 object-cover"
+                                          />
+                                        </a>
+                                      ) : (
+                                        <a
+                                          href={att.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={`flex items-center gap-2 px-2 py-1 rounded ${
+                                            isOwn ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-gray-200 hover:bg-gray-300'
+                                          }`}
+                                        >
+                                          <FileText className="h-4 w-4 flex-shrink-0" />
+                                          <span className="truncate text-xs">{att.name}</span>
+                                        </a>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                               <p
                                 className={`text-xs mt-1 ${
                                   isOwn ? 'text-emerald-100' : 'text-gray-400'
@@ -355,11 +455,55 @@ export default function MessagesPage() {
                     <div ref={messagesEndRef} />
                   </div>
 
+                  {/* Selected files preview */}
+                  {selectedFiles.length > 0 && (
+                    <div className="px-4 pt-2 flex flex-wrap gap-2">
+                      {selectedFiles.map((file, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-1 bg-gray-100 rounded-lg px-2 py-1 text-xs text-gray-700"
+                        >
+                          {file.type.startsWith('image/') ? (
+                            <ImageIcon className="h-3 w-3" />
+                          ) : (
+                            <FileText className="h-3 w-3" />
+                          )}
+                          <span className="truncate max-w-[120px]">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(idx)}
+                            className="ml-1 text-gray-400 hover:text-red-500"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Message input */}
                   <form
                     onSubmit={handleSendMessage}
                     className="p-4 border-t border-gray-200 flex items-center gap-2"
                   >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={sending}
+                      title="Joindre des fichiers"
+                    >
+                      <Paperclip className="h-4 w-4 text-gray-500" />
+                    </Button>
                     <Input
                       placeholder="Écrire un message..."
                       value={newMessage}
@@ -371,7 +515,7 @@ export default function MessagesPage() {
                       type="submit"
                       size="icon"
                       className="bg-emerald-600 hover:bg-emerald-700"
-                      disabled={sending || !newMessage.trim()}
+                      disabled={sending || (!newMessage.trim() && selectedFiles.length === 0)}
                     >
                       {sending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

@@ -4,6 +4,7 @@ import { Message, Conversation } from '../models/Message';
 import User from '../models/User';
 import { NotificationService } from '../services/notificationService';
 import { emitNewMessage, emitMessageUpdated, emitMessageDeleted } from '../services/socketService';
+import { uploadFile } from '../services/uploadService';
 
 export class MessageController {
   // Créer une nouvelle conversation
@@ -209,7 +210,8 @@ export class MessageController {
   static async sendMessage(req: Request, res: Response): Promise<void> {
     try {
       const { conversationId } = req.params;
-      const { content, messageType, metadata, attachments } = req.body;
+      const { content, messageType, metadata } = req.body;
+      let { attachments } = req.body;
 
       const conversation = await Conversation.findById(conversationId);
 
@@ -234,10 +236,33 @@ export class MessageController {
         return;
       }
 
+      // Handle file uploads via multer
+      const uploadedFiles = req.files as Express.Multer.File[] | undefined;
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        const fileAttachments = await Promise.all(
+          uploadedFiles.map(async (file) => {
+            const result = await uploadFile(file, 'messages');
+            const isImage = file.mimetype.startsWith('image/');
+            return {
+              type: isImage ? 'image' as const : 'document' as const,
+              url: result.url,
+              name: file.originalname,
+              size: file.size,
+            };
+          })
+        );
+        attachments = [...(attachments || []), ...fileAttachments];
+      }
+
+      // Parse attachments if passed as JSON string (from FormData)
+      if (typeof attachments === 'string') {
+        try { attachments = JSON.parse(attachments); } catch (e) { console.warn('Failed to parse attachments JSON:', e); attachments = undefined; }
+      }
+
       const message = new Message({
         conversation: conversationId,
         sender: req.user?.userId,
-        content,
+        content: content || '',
         messageType: messageType || 'text',
         metadata,
         attachments,
@@ -270,10 +295,11 @@ export class MessageController {
         const sender = await User.findById(req.user?.userId).select('firstName lastName');
         if (sender) {
           const senderName = `${sender.firstName} ${sender.lastName}`;
+          const preview = content || (attachments?.length ? `📎 ${attachments.length} pièce(s) jointe(s)` : '');
           for (const recipientId of recipientIds) {
             NotificationService.onNewMessage(
               recipientId, req.user?.userId as string,
-              senderName, content, conversationId
+              senderName, preview, conversationId
             ).catch(() => {});
           }
         }

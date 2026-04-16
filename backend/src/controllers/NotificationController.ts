@@ -1,5 +1,27 @@
 import { Request, Response } from 'express';
 import Notification from '../models/Notification';
+import User from '../models/User';
+
+const DEFAULT_NOTIFICATION_PREFS = {
+  email: {
+    messages: true,
+    reviews: true,
+    orders: true,
+    ideabooks: true,
+    projects: true,
+    system: true,
+    quotes: true,
+  },
+  inApp: {
+    messages: true,
+    reviews: true,
+    orders: true,
+    ideabooks: true,
+    projects: true,
+    system: true,
+    quotes: true,
+  },
+};
 
 export class NotificationController {
   // Obtenir les notifications de l'utilisateur connecté
@@ -157,6 +179,82 @@ export class NotificationController {
         success: false,
         message: 'Erreur interne du serveur'
       });
+    }
+  }
+
+  // Obtenir les préférences de notification de l'utilisateur
+  static async getPreferences(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user.userId;
+      const user = await User.findById(userId).select('preferences');
+
+      if (!user) {
+        res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      const prefs = user.preferences?.notificationPreferences || DEFAULT_NOTIFICATION_PREFS;
+
+      res.json({
+        success: true,
+        data: {
+          globalEnabled: user.preferences?.notifications !== false,
+          email: { ...DEFAULT_NOTIFICATION_PREFS.email, ...prefs.email },
+          inApp: { ...DEFAULT_NOTIFICATION_PREFS.inApp, ...prefs.inApp },
+        },
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des préférences:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
+    }
+  }
+
+  // Mettre à jour les préférences de notification
+  static async updatePreferences(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user.userId;
+      const { globalEnabled, email, inApp } = req.body;
+
+      const update: Record<string, unknown> = { updatedAt: new Date() };
+      const ALLOWED_TYPES = ['messages', 'reviews', 'orders', 'ideabooks', 'projects', 'system', 'quotes'];
+
+      if (typeof globalEnabled === 'boolean') {
+        update['preferences.notifications'] = globalEnabled;
+      }
+      if (email && typeof email === 'object') {
+        for (const [key, value] of Object.entries(email)) {
+          if (typeof value === 'boolean' && ALLOWED_TYPES.includes(key)) {
+            update[`preferences.notificationPreferences.email.${key}`] = value;
+          }
+        }
+      }
+      if (inApp && typeof inApp === 'object') {
+        for (const [key, value] of Object.entries(inApp)) {
+          if (typeof value === 'boolean' && ALLOWED_TYPES.includes(key)) {
+            update[`preferences.notificationPreferences.inApp.${key}`] = value;
+          }
+        }
+      }
+
+      const user = await User.findByIdAndUpdate(userId, { $set: update }, { new: true }).select('preferences');
+
+      if (!user) {
+        res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Préférences de notification mises à jour',
+        data: {
+          globalEnabled: user.preferences?.notifications !== false,
+          email: { ...DEFAULT_NOTIFICATION_PREFS.email, ...user.preferences?.notificationPreferences?.email },
+          inApp: { ...DEFAULT_NOTIFICATION_PREFS.inApp, ...user.preferences?.notificationPreferences?.inApp },
+        },
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des préférences:', error);
+      res.status(500).json({ success: false, message: 'Erreur interne du serveur' });
     }
   }
 }
