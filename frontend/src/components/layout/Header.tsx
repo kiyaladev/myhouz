@@ -99,7 +99,7 @@ export default function Header() {
     });
 
     return unsubNotif;
-  }, [isAuthenticated, onNotification, onNotificationCount]);
+  }, [isAuthenticated, onNotification]);
 
   // Search autocomplete state
   const [searchQuery, setSearchQuery] = useState('');

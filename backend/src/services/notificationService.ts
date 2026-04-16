@@ -18,12 +18,23 @@ function truncate(text: string, maxLength: number = 80): string {
   return text.substring(0, maxLength) + '...';
 }
 
+interface UserWithPreferences {
+  preferences?: {
+    notifications?: boolean;
+    notificationPreferences?: {
+      email?: Record<string, boolean>;
+      inApp?: Record<string, boolean>;
+    };
+  };
+  email?: string;
+}
+
 export class NotificationService {
   /**
    * Check if user has enabled a specific notification channel + type
    */
   private static isEnabled(
-    user: { preferences?: { notifications?: boolean; notificationPreferences?: { email?: Record<string, boolean>; inApp?: Record<string, boolean> } } } | null,
+    user: UserWithPreferences | null,
     channel: 'email' | 'inApp',
     type: string
   ): boolean {

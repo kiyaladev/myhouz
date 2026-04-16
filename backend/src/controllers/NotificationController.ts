@@ -216,20 +216,21 @@ export class NotificationController {
       const { globalEnabled, email, inApp } = req.body;
 
       const update: Record<string, unknown> = { updatedAt: new Date() };
+      const ALLOWED_TYPES = ['messages', 'reviews', 'orders', 'ideabooks', 'projects', 'system', 'quotes'];
 
       if (typeof globalEnabled === 'boolean') {
         update['preferences.notifications'] = globalEnabled;
       }
       if (email && typeof email === 'object') {
         for (const [key, value] of Object.entries(email)) {
-          if (typeof value === 'boolean') {
+          if (typeof value === 'boolean' && ALLOWED_TYPES.includes(key)) {
             update[`preferences.notificationPreferences.email.${key}`] = value;
           }
         }
       }
       if (inApp && typeof inApp === 'object') {
         for (const [key, value] of Object.entries(inApp)) {
-          if (typeof value === 'boolean') {
+          if (typeof value === 'boolean' && ALLOWED_TYPES.includes(key)) {
             update[`preferences.notificationPreferences.inApp.${key}`] = value;
           }
         }

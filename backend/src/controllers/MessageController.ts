@@ -256,7 +256,7 @@ export class MessageController {
 
       // Parse attachments if passed as JSON string (from FormData)
       if (typeof attachments === 'string') {
-        try { attachments = JSON.parse(attachments); } catch { attachments = undefined; }
+        try { attachments = JSON.parse(attachments); } catch (e) { console.warn('Failed to parse attachments JSON:', e); attachments = undefined; }
       }
 
       const message = new Message({
